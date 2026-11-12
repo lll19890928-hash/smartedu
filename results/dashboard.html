@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鲁力立 · 学术动态监控系统</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f5f6fa;color:#2d3436;line-height:1.7;min-height:100vh}
+a{color:#4834d4;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:20px 32px;box-shadow:0 2px 12px rgba(102,126,234,.3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.header-left h1{font-size:22px;font-weight:700}
+.header-left .sub{font-size:13px;opacity:.85;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-refresh{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;transition:.2s;backdrop-filter:blur(4px);white-space:nowrap}
+.btn-refresh:hover{background:rgba(255,255,255,.32)}
+.btn-refresh:disabled{opacity:.5;cursor:not-allowed}
+.update-time{font-size:12px;opacity:.7}
+
+.section-nav{display:flex;gap:0;background:#fff;border-bottom:2px solid #e0e0e0;position:sticky;top:0;z-index:50;overflow-x:auto}
+.section-tab{flex-shrink:0;padding:14px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#636e72;border-bottom:3px solid transparent;transition:.2s;margin-bottom:-2px;white-space:nowrap}
+.section-tab:hover,.section-tab.active{color:#4834d4}
+.section-tab.active{border-bottom-color:#4834d4;font-weight:700}
+.section-tab .sicon{margin-right:4px}
+
+.sec-controls{display:flex;align-items:center;gap:10px;padding:14px 32px;background:#fff;border-bottom:1px solid #e8e8e8;flex-wrap:wrap}
+.sec-controls select,.sec-controls button{padding:7px 14px;border-radius:7px;font-size:13px;border:1px solid #d0d0d0;background:#fff;color:#2d3436;cursor:pointer;transition:.15s}
+.sec-controls select:hover,.sec-controls button:hover{border-color:#4834d4}
+.sec-controls .btn-primary{background:#4834d4;color:#fff;border-color:#4834d4}.sec-controls .btn-primary:hover{background:#3c2bb0}
+.sec-stat{font-size:13px;color:#636e72;margin-left:auto}
+
+.content{padding:24px 32px;max-width:1100px;margin:0 auto}
+.section{animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.profile-banner{background:#fff;border-radius:12px;padding:24px;margin-bottom:20px;border:1px solid #e8e8e8;display:flex;gap:20px;align-items:center}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;flex-shrink:0}
+.profile-name{font-size:22px;font-weight:700}
+.profile-meta{font-size:13px;color:#636e72;margin-top:4px;line-height:1.8}
+.profile-tags{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 10px;border-radius:10px;background:#f0f0ff;color:#4834d4;border:1px solid #e0d8ff}
+
+.block-card{background:#fff;border-radius:12px;margin-bottom:16px;border:1px solid #e8e8e8;overflow:hidden}
+.block-header{display:flex;align-items:center;gap:12px;padding:15px 20px;cursor:pointer;user-select:none}
+.block-header:hover{background:#fafbfc}
+.block-icon{font-size:18px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bicon-1{background:#f0f0ff;color:#6366f1}.bicon-2{background:#fff8e1;color:#f59e0b}
+.bicon-3{background:#e8f5e9;color:#10b981}.bicon-4{background:#e3f2fd;color:#3b82f6}
+.bicon-5{background:#fce4ec;color:#ef4444}.bicon-6{background:#f3e5f5;color:#8b5cf6}
+.block-title{font-size:16px;font-weight:600;flex:1}
+.block-badge{font-size:11px;padding:3px 10px;border-radius:10px;background:#f0f0ff;color:#4834d4;font-weight:500}
+.block-arrow{color:#b2bec3;font-size:14px;transition:.2s}
+.block-card.collapsed .block-body{display:none}
+.block-card.collapsed .block-arrow{transform:rotate(-90deg)}
+.block-body{padding:0 20px 18px}
+
+.subsection{margin-bottom:16px}
+.subsection:last-child{margin-bottom:0}
+.subsection-title{font-size:14px;font-weight:600;color:#4834d4;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #f0f0ff;display:flex;align-items:center;gap:6px}
+.sub-count{font-size:11px;color:#b2bec3;font-weight:400}
+
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 10px;background:#f8f9ff;color:#4834d4;font-weight:600;border-bottom:2px solid #e0d8ff;white-space:nowrap}
+.data-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.6}
+.data-table tr:hover td{background:#fafbff}
+.data-table td a{word-break:break-all}
+.data-table .nrow{font-size:12px;color:#b2bec3;text-align:center;width:30px}
+
+.profile-list{display:flex;flex-direction:column;gap:4px}
+.pl-item{display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid #f8f8f8;line-height:1.6}
+.pl-label{color:#636e72;min-width:80px;flex-shrink:0}
+.pl-value{color:#2d3436}
+
+.timeline{position:relative;padding-left:22px}
+.timeline::before{content:'';position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:#e0d8ff}
+.tl-item{position:relative;margin-bottom:6px;font-size:13px}
+.tl-item::before{content:'';position:absolute;left:-20px;top:7px;width:8px;height:8px;border-radius:50%;background:#4834d4;border:2px solid #fff;box-shadow:0 0 0 1px #4834d4}
+.tl-label{color:#4834d4;font-weight:600;font-size:12px;margin-bottom:1px}
+.tl-value{color:#2d3436}
+.tl-unit{color:#b2bec3;font-size:11px;margin-top:1px}
+
+.tag-cloud{display:flex;flex-wrap:wrap;gap:8px}
+.tag-cloud .tag-item{padding:5px 12px;border-radius:6px;font-size:12px;background:#f0f0ff;color:#4834d4;border:1px solid #e0d8ff}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.c-item{background:#fafbfc;border:1px solid #e8e8e8;border-radius:8px;padding:10px}
+.c-item-label{font-size:11px;color:#b2bec3;margin-bottom:2px}
+.c-item-value{font-size:13px;color:#2d3436}
+
+.news-card{background:#fff;border-radius:12px;margin-bottom:14px;border:1px solid #e8e8e8;overflow:hidden;transition:box-shadow .15s}
+.news-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.news-header{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;cursor:pointer}
+.news-date{font-size:12px;color:#636e72;white-space:nowrap;min-width:88px;text-align:right;margin-top:2px}
+.news-body{flex:1}
+.news-title{font-size:15px;font-weight:600;color:#2d3436;margin-bottom:4px}
+.news-summary{font-size:13px;color:#636e72;line-height:1.6}
+.news-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.news-cat{font-size:11px;padding:2px 9px;border-radius:11px;font-weight:500;white-space:nowrap}
+.news-src-count{font-size:12px;color:#4834d4;font-weight:500;cursor:pointer}
+.news-src-count:hover{text-decoration:underline}
+.news-sources{display:none;border-top:1px solid #f0f0f0;padding:10px 18px;background:#fafbfc}
+.news-sources.show{display:block}
+.news-full{display:none;border-top:1px solid #f0f0f0;padding:12px 18px;background:#f8f9ff}
+.news-full.show{display:block}
+.news-full-title{font-size:13px;color:#2d3436;margin-bottom:6px;line-height:1.6;word-break:break-all}
+.news-full-summary{font-size:12.5px;color:#555;line-height:1.7}
+.news-src-item{padding:5px 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:8px;font-size:13px}
+.news-src-item:last-child{border-bottom:none}
+.news-src-name{color:#4834d4;font-weight:500;white-space:nowrap;min-width:100px}
+.news-src-url{color:#636e72;font-size:12px;word-break:break-all}
+.news-src-date{color:#b2bec3;font-size:11px;margin-left:auto;white-space:nowrap}
+
+/* Category colors */
+.cat-media{background:#e8f5e9;color:#2e7d32}
+.cat-project{background:#e3f2fd;color:#1565c0}
+.cat-academic{background:#fce4ec;color:#c62828}
+.cat-honors{background:#fff3e0;color:#e65100}
+.cat-teaching{background:#f3e5f5;color:#6a1b9a}
+.cat-base{background:#e0f7fa;color:#00695c}
+.cat-conference{background:#fff9c4;color:#f57f17}
+.cat-startup{background:#e8eaf6;color:#283593}
+.cat-yimu{background:rgba(0,210,210,.12);color:#00838f}
+.cat-service{background:#fce4ec;color:#ad1457}
+
+/* YiMu stats badge */
+.yimu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.ys-card{background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #e8e8e8}
+.ys-num{font-size:28px;font-weight:700;color:#00838f}
+.ys-label{font-size:12px;color:#636e72;margin-top:4px}
+
+@media(max-width:768px){
+.header{padding:16px 20px}
+.section-tab{padding:12px 14px;font-size:13px}
+.sec-controls,.content{padding:12px 16px}
+.profile-banner{flex-direction:column;text-align:center}
+.news-header{flex-direction:column;gap:6px}.news-date{text-align:left}
+.data-table{font-size:11px}.yimu-stats{grid-template-columns:repeat(2,1fr)}
+}
+.empty{text-align:center;padding:60px 20px;color:#b2bec3;font-size:15px}
+.loading{text-align:center;padding:40px;color:#b2bec3}
+
+    .item-link{margin-left:4px;font-size:13px;text-decoration:none;opacity:0.6;transition:.15s}
+    .item-link:hover{opacity:1}
+
+/* 搜索框 */
+.search-bar{max-width:1100px;margin:0 auto;padding:12px 32px 8px}
+.search-input{width:100%;padding:10px 16px 10px 40px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:.2s;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23b2bec3' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='M21 21l-4.35-4.35'%3E%3C/path%3E%3C/svg%3E") 14px center no-repeat}
+.search-input:focus{border-color:#4834d4;box-shadow:0 0 0 3px rgba(72,52,212,.1)}
+.search-results{max-width:1100px;margin:0 auto;padding:0 32px}
+.search-results .sr-item{padding:10px 14px;margin-bottom:4px;background:#fff;border-radius:8px;border:1px solid #e8e8e8;cursor:pointer;font-size:13px;transition:.15s;display:none}
+.search-results .sr-item:hover,.search-results .sr-item.active{background:#f0f0ff;border-color:#4834d4}
+.search-results .sr-topic{font-size:11px;color:#b2bec3;margin-bottom:3px}
+.search-results .sr-match{color:#2d3436}.search-results .sr-match mark{background:#fff3cd;padding:1px 0;color:#856404;font-weight:600}
+.search-results .sr-info{font-size:12px;color:#636e72;margin-top:2px}
+.search-clear{position:absolute;right:42px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:#e0e0e0;border:none;color:#636e72;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1}
+.search-clear:hover{background:#b2bec3;color:#fff}
+.search-wrap{position:relative;max-width:1100px;margin:0 auto;padding:0 32px}
+
+/* 导出按钮 */
+.export-btns{display:inline-flex;gap:4px;margin-left:auto;flex-shrink:0}
+.export-btn{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid #d0d0d0;background:#fafbfc;color:#636e72;cursor:pointer;transition:.15s;white-space:nowrap}
+.export-btn:hover{border-color:#4834d4;color:#4834d4;background:#f0f0ff}
+.export-btn.xlsx:hover{border-color:#2e7d32;color:#2e7d32;background:#e8f5e9}
+.export-btn.docx:hover{border-color:#1565c0;color:#1565c0;background:#e3f2fd}
+.block-title-wrap{display:flex;align-items:center;gap:8px;flex:1}
+.search-none{text-align:center;padding:20px;color:#b2bec3;font-size:13px;display:none}
+
+/* ═════ 智能对话 widget ═════ */
+.chat-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(102,126,234,.45);z-index:9000;display:flex;align-items:center;justify-content:center;transition:.2s}
+.chat-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(102,126,234,.6)}
+.chat-fab .badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.chat-panel{position:fixed;bottom:90px;right:24px;width:380px;max-height:520px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.18);z-index:9001;display:flex;flex-direction:column;overflow:hidden;transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s}
+.chat-panel.open{transform:translateY(0);opacity:1;pointer-events:auto}
+.chat-panel-hd{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.chat-panel-hd h3{font-size:14px;font-weight:600;margin:0}
+.chat-panel-hd .close-btn{background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f5f6fa;min-height:200px;max-height:360px}
+.chat-msg{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;max-width:88%;word-break:break-word}
+.chat-msg.user{background:#4834d4;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-msg.ai{background:#fff;color:#2d3436;border:1px solid #e8e8e8;border-bottom-left-radius:4px;align-self:flex-start}
+.chat-msg.ai::before{content:'🤖 ';font-size:12px}
+.chat-msg .loading-dots{color:#b2bec3;font-size:13px}
+.chat-msg .loading-dots::after{content:'';animation:dotPulse 1.2s infinite}
+@keyframes dotPulse{0%{content:'.';}33%{content:'..';}66%{content:'...';}}
+.chat-input-area{display:flex;gap:8px;padding:12px 14px;border-top:1px solid #e8e8e8;flex-shrink:0}
+.chat-input-area input{flex:1;padding:9px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;transition:.15s}
+.chat-input-area input:focus{border-color:#4834d4}
+.chat-input-area button{background:#4834d4;color:#fff;border:none;padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
+.chat-input-area button:hover{background:#3c2bb0}
+.chat-input-area button:disabled{opacity:.5;cursor:not-allowed}
+
+/* 设置弹窗 */
+.chat-settings-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:9500;display:flex;align-items:center;justify-content:center}
+.chat-settings-box{background:#fff;border-radius:14px;padding:28px 24px;max-width:400px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.chat-settings-box h3{margin:0 0 8px;color:#2d3436;font-size:16px}
+.chat-settings-box p{font-size:13px;color:#636e72;line-height:1.7;margin-bottom:14px}
+.chat-settings-box input{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;margin-bottom:12px;transition:.15s}
+.chat-settings-box input:focus{border-color:#4834d4}
+.chat-settings-box .btn-row{display:flex;gap:8px;justify-content:flex-end}
+.chat-settings-box .btn-save{background:#4834d4;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:13px;cursor:pointer}
+.chat-settings-box .btn-cancel{background:#fff;color:#636e72;border:1px solid #d0d0d0;padding:8px 20px;border-radius:8px;font-size:13px;cursor:pointer}
+.chat-status{font-size:11px;color:#636e72;margin-top:6px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>📡 鲁力立 · 学术动态监控系统</h1>
+        <div class="sub">四大板块 · 覆盖时间 2011–2026 · 全网新闻链接追踪</div>
+    </div>
+    <div class="header-right">
+        <span class="update-time" id="updateTime">数据加载中…</span>
+        <button class="btn-refresh" id="btnRefresh" onclick="triggerRefresh()">🔄 一键刷新</button>
+        <button class="btn-refresh" style="background:rgba(255,255,255,.25);margin-left:6px" onclick="window.open('/standalone','_blank')">📥 下载独立版</button>
+    </div>
+</div>
+
+<!-- 刷新弹窗模态框 -->
+<div id="refreshModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:9999;justify-content:center;align-items:center;">
+  <div style="background:#fff;border-radius:16px;max-width:520px;width:90%;padding:32px 28px;box-shadow:0 8px 40px rgba(0,0,0,.18);animation:fadeIn .2s">
+    <h3 style="margin:0 0 12px;color:#2d3436;font-size:17px">🔄 数据刷新指引</h3>
+    <p style="font-size:14px;color:#636e72;line-height:1.8;margin-bottom:16px">
+      数据更新需要 AI 助手辅助完成。请按以下步骤操作：
+    </p>
+    <ol style="font-size:14px;color:#2d3436;line-height:2;padding-left:20px;margin-bottom:18px">
+      <li>打开 <b>WorkBuddy</b>（或本页底部聊天窗口）</li>
+      <li>输入：<code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:13px">更新鲁力立新闻监控数据</code></li>
+      <li>AI 将自动搜索全网最新动态并更新数据</li>
+      <li>更新完成后刷新本页即可看到最新内容</li>
+    </ol>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeRefreshModal()" style="padding:8px 18px;border-radius:8px;border:1px solid #d0d0d0;background:#fff;cursor:pointer;font-size:13px">关闭</button>
+      <button onclick="closeRefreshModal();window.open('https://workbuddy.ai','_blank')" style="padding:8px 18px;border-radius:8px;border:none;background:#4834d4;color:#fff;cursor:pointer;font-size:13px">打开 WorkBuddy</button>
+    </div>
+  </div>
+</div>
+
+<div class="search-wrap" style="padding:10px 32px 4px;background:#fff">
+    <input type="text" class="search-input" id="globalSearch" placeholder="🔍 全局检索 — 输入关键词搜索所有板块内容..."
+        oninput="doGlobalSearch(this.value)" onkeydown="handleSearchKey(event)">
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-none" id="searchNone">未找到匹配结果</div>
+</div>
+
+<div class="section-nav" id="sectionNav">
+    <div class="section-tab active" data-sec="personal" onclick="switchSection('personal')"><span class="sicon">📋</span>个人全貌</div>
+    <div class="section-tab" data-sec="yimu" onclick="switchSection('yimu')"><span class="sicon">🎬</span>壹幕工作室</div>
+    <div class="section-tab" data-sec="metaverse" onclick="switchSection('metaverse')"><span class="sicon">🌐</span>教育元宇宙未来课堂</div>
+    <div class="section-tab" data-sec="base" onclick="switchSection('base')"><span class="sicon">🏫</span>智慧教育产教基地</div>
+    <div class="section-tab" data-sec="lulili" onclick="switchSection('lulili')"><span class="sicon">👤</span>我的动态</div>
+    <div class="section-tab" data-sec="related" onclick="switchSection('related')"><span class="sicon">🔗</span>关联机构</div>
+    <div class="section-tab" data-sec="honors" onclick="switchSection('honors')"><span class="sicon">🏆</span>荣誉成果</div>
+</div>
+
+<div id="controlsArea"></div>
+<div class="content" id="contentArea"><div class="loading">⏳ 加载中...</div></div>
+
+<script>
+
+// ════ 全局错误捕获（帮助定位 Safari 错误）════
+window.addEventListener('error',function(e){
+  var msg='JS错误: '+(e.message||'')+' | 位置: '+(e.filename||'')+':'+(e.lineno||'')+':'+(e.colno||'');
+  var div=document.getElementById('globalError');
+  if(!div){div=document.createElement('div');div.id='globalError';document.body.prepend(div);}
+  div.style.cssText='position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;cursor:pointer;word-break:break-all;';
+  div.textContent=msg;
+  div.onclick=function(){div.style.display='none';};
+  console.error('Global JS Error:',e);
+});
+// ══════════════════════════════════════════════
+let ALL_DATA={},currentSection='personal';
+
+async function init(){
+// ═════════════════════════════════════════════
+// 独立版模式：检测嵌入数据（离线运行）
+// ═════════════════════════════════════════════
+if(typeof EMBEDDED_DATA!=='undefined'){
+  ALL_DATA=EMBEDDED_DATA;
+  var mt=(EMBEDDED_DATA._meta&&EMBEDDED_DATA._meta.updateTime)||'未知';
+  document.getElementById('updateTime').textContent='数据版本：独立版（'+mt+'）';
+  switchSection('personal');
+  return;
+}
+
+// ═════════════════════════════════════════════
+// 在线模式：从服务器获取数据
+// ═════════════════════════════════════════════
+var v='0';
+try{var vi=await fetch('/api/version',{cache:'no-store'});var vj=await vi.json();v=vj.version;}catch(e){}
+
+var safeFetch=async function(url,defaultVal){
+  try{
+    var sep=url.indexOf('?')>=0?'&':'?';
+    var r=await fetch(url+sep+'_v='+v,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status+' ('+url+')');
+    return await r.json();
+  }catch(e){
+    console.warn('数据加载失败 ['+url+']: '+e.message);
+    return defaultVal;
+  }
+};
+
+var empty={results:[],stats:{}};
+ALL_DATA.profile=empty; ALL_DATA.lulili=empty; ALL_DATA.metaverse=empty;
+ALL_DATA.base=empty; ALL_DATA.related=empty; ALL_DATA.honors=empty;
+
+var[pr,lr,mr,br,rr,hr]=await Promise.all([
+  safeFetch('/api/search?topic=profile',empty),
+  safeFetch('/api/search?topic=lulili',empty),
+  safeFetch('/api/search?topic=metaverse',empty),
+  safeFetch('/api/search?topic=base',empty),
+  safeFetch('/api/search?topic=related',empty),
+  safeFetch('/api/search?topic=honors',empty)
+]);
+ALL_DATA.profile=pr; ALL_DATA.lulili=lr; ALL_DATA.metaverse=mr;
+ALL_DATA.base=br; ALL_DATA.related=rr; ALL_DATA.honors=hr;
+
+try{var yr=await fetch('/static/yimu.json?_v='+v,{cache:'no-store'});ALL_DATA.yimu=await yr.json();}catch(e){ALL_DATA.yimu={results:[],stats:{}};}
+
+switchSection('personal');
+}
+
+function switchSection(sec){
+currentSection=sec;
+document.querySelectorAll('.section-tab').forEach(t=>t.classList.remove('active'));
+document.querySelector('[data-sec="'+sec+'"]').classList.add('active');
+const ctrl=document.getElementById('controlsArea');
+if(sec==='personal'){
+ctrl.innerHTML='<div class="sec-controls"><button class="btn-primary" onclick="xpAll()">▼ 展开全部</button> <button onclick="clAll()">▶ 折叠全部</button> <span style="margin-left:12px">📥 导出全部：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportAllProfileExcel()">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportAllProfileWord()">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderPersonal();
+}else if(sec==='yimu'){
+ctrl.innerHTML='<div class="sec-controls">'
++' 排序：<select id="ymSort" onchange="renderYimu()">'
++'<option value="time">按时间（新→旧）</option>'
++'<option value="time_asc">按时间（旧→新）</option>'
++'<option value="level">按级别（国家级→省部级→校级）</option>'
++'<option value="year">按年份（新→旧）</option>'
++'</select>'
++' 筛选：级别 <select id="ymFilterLevel" onchange="renderYimu()">'
++'<option value="">全部</option>'
++'<option value="国家级">国家级</option>'
++'<option value="省部级">省部级</option>'
++'<option value="校级">校级</option>'
++'</select>'
++' 年份 <select id="ymFilterYear" onchange="renderYimu()">'
++'<option value="">全部</option>'
++'</select>'
++' 等级 <select id="ymFilterGrade" onchange="renderYimu()">'
++'<option value="">全部</option>'
++'<option value="一等奖">一等奖</option>'
++'<option value="二等奖">二等奖</option>'
++'<option value="三等奖">三等奖</option>'
++'<option value="优秀奖">优秀奖/优秀作品</option>'
++'</select>'
++' <button onclick="resetYmFilter()">重置筛选</button>'
++' <span style="margin-left:12px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportYimuExcel()">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportYimuWord()">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderYimu();
+}else if(sec==='metaverse'){
+ctrl.innerHTML='<div class="sec-controls"><select id="mvCat" onchange="renderMetaverse()"><option value="all">全部</option></select> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'metaverse\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'metaverse\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderMetaverse();
+}else if(sec==='base'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'base\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'base\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderBase();
+}else if(sec==='lulili'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'lulili\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'lulili\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderLulili();
+}else if(sec==='related'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'related\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'related\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderRelated();
+}else if(sec==='honors'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'honors\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'honors\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderHonors();
+}
+}
+
+// ═══════ SECTION 1: PERSONAL ═══════
+function renderPersonal(){
+const blocks=ALL_DATA.profile.results||[];
+document.getElementById('secStat').textContent=blocks.length+' 个板块';
+let html=renderProfileBanner();
+html+=blocks.map((block,i)=>renderBlock(block,i)).join('');
+document.getElementById('contentArea').innerHTML=html;
+}
+
+function renderProfileBanner(){
+  return '<div class="profile-banner"><div class="profile-avatar">🎓</div><div><div class="profile-name">鲁力立</div><div class="profile-meta">华东师范大学 教育学部 教育信息技术学系 · 高级工程师（副高）<br>华东师范大学智慧教育产教基地 负责人</div><div class="profile-tags"><span class="tag">85后</span><span class="tag">中共党员</span><span class="tag">教育博士</span><span class="tag">CSSCI审稿人</span><span class="tag">混合式教学特等奖</span></div></div></div>';
+}
+
+function renderBlock(block,idx){
+const subs=block.subsections||[];
+const total=subs.reduce((s,sub)=>s+(sub.items||[]).length+(sub.rows||[]).length,0);
+const icons=['bicon-1','bicon-2','bicon-3','bicon-4','bicon-5','bicon-6'];
+return '<div class="block-card" id="blk-'+idx+'"><div class="block-header" onclick="toggleBlk('+idx+')"><div class="block-icon '+icons[idx%6]+'">'+(idx+1)+'</div><div class="block-title-wrap"><span class="block-title">'+escHtml(block.title)+'</span><div class="export-btns" onclick="event.stopPropagation()"><button class="export-btn xlsx" title="导出为Excel" onclick="exportBlockExcel('+idx+')">📊 Excel</button><button class="export-btn docx" title="导出为Word" onclick="exportBlockWord('+idx+')">📝 Word</button></div></div><span class="block-badge">'+total+'条</span><span class="block-arrow" id="arr-'+idx+'">▼</span></div><div class="block-body" id="bdy-'+idx+'">'+subs.map(sub=>renderSub(sub)).join('')+'</div></div>';
+}
+
+function renderSub(sub){
+const type=sub.type||'list',items=sub.items||[],rows=sub.rows||[],cols=sub.columns||[];
+const count=items.length+rows.length;
+let body='';
+if(type==='table')body=renderTable(cols,rows);
+else if(type==='timeline')body=renderTimeline(items);
+else if(type==='tags')body=renderTags(items);
+else if(type==='card')body=renderCards(items);
+else body=renderList(items);
+return '<div class="subsection"><div class="subsection-title">'+escHtml(sub.title)+'<span class="sub-count">('+count+')</span></div>'+body+'</div>';
+}
+
+function renderTable(cols,rows){
+if(!rows.length)return '<div style="color:#b2bec3;font-size:13px">暂无数据</div>';
+const thead='<tr>'+cols.map(c=>'<th>'+escHtml(c)+'</th>').join('')+'</tr>';
+const tbody=rows.map((row,i)=>'<tr>'+row.map((cell,j)=>{
+let v=escHtml(String(cell));
+v=v.replace(/\[([^\]]+)\]\((https?:\/\/[^\s<>"]+)\)/g,'<a href="$2" target="_blank" rel="noopener" style="color:#667eea">$1</a>');
+v=v.replace(/(https?:\/\/[^\s<>")]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+const cn=(cols[j]||'').toLowerCase();
+if(cn.includes('级别')||cn.includes('类型')){
+const m={'CSSCI':'cat-academic','SSCI':'cat-yimu','SCI':'cat-yimu','纵向':'cat-project','横向':'cat-base'};
+for(const[k,c]of Object.entries(m)){if(v.includes(k)){v='<span class="news-cat '+c+'">'+v+'</span>';break;}}
+}
+return '<td>'+v+'</td>';
+}).join('')+'</tr>').join('');
+return '<table class="data-table">'+thead+tbody+'</table>';
+}
+
+function renderTimeline(items){
+return '<div class="timeline">'+items.map(it=>{
+let unitHtml=it.unit?'<div class="tl-unit">🏛 '+escHtml(it.unit)+'</div>':'';
+let linkHtml=it.link?' <a href="'+escHtml(it.link)+'" target="_blank" rel="noopener" class="tl-link" title="查看新闻报道">🔗</a>':'';
+return '<div class="tl-item"><div class="tl-label">'+escHtml(it.label)+'</div><div class="tl-value">'+escHtml(it.value)+linkHtml+'</div>'+unitHtml+'</div>';
+}).join('')+'</div>';
+}
+
+function renderList(items){
+return '<div class="profile-list">'+items.map(it=>{
+let v=escHtml(it.value);v=v.replace(/(https?:\/\/[^\s<>"]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+let lh=it.link?' <a href="'+escHtml(it.link)+'" target="_blank" rel="noopener" class="item-link" title="查看新闻报道">🔗</a>':'';
+return '<div class="pl-item"><span class="pl-label">'+escHtml(it.label)+'</span><span class="pl-value">'+v+lh+'</span></div>';
+}).join('')+'</div>';
+}
+function renderTags(items){return '<div class="tag-cloud">'+items.map(it=>'<span class="tag-item">'+escHtml(it.value)+'</span>').join('')+'</div>';}
+function renderCards(items){return '<div class="card-grid">' + items.map(it=>{
+let lh=it.link?' <a href="'+escHtml(it.link)+'" target="_blank" rel="noopener" class="item-link" title="查看新闻报道">🔗</a>':'';
+return '<div class="c-item"><div class="c-item-label">'+escHtml(it.label)+'</div><div class="c-item-value">'+escHtml(it.value)+lh+'</div></div>';
+}).join('') + '</div>';}
+
+function toggleBlk(idx){const card=document.getElementById('blk-'+idx),arr=document.getElementById('arr-'+idx);if(!card)return;card.classList.toggle('collapsed');if(arr)arr.textContent=card.classList.contains('collapsed')?'▶':'▼';}
+function xpAll(){document.querySelectorAll('.block-card').forEach((c,i)=>{c.classList.remove('collapsed');const a=document.getElementById('arr-'+i);if(a)a.textContent='▼';});}
+function clAll(){document.querySelectorAll('.block-card').forEach((c,i)=>{c.classList.add('collapsed');const a=document.getElementById('arr-'+i);if(a)a.textContent='▶';});}
+
+// ═══════ SECTION 2: YIMU STUDIO ═══════
+function renderYimu(){
+var yd=ALL_DATA.yimu||{};
+var stats=yd.stats||{};
+var items=yd.results||[];
+var evs=(ALL_DATA.lulili||{}).results||[];
+var events=evs.filter(function(e){return e.category==='壹幕工作室';});
+events.sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+
+var sortEl=document.getElementById('ymSort');
+var levelEl=document.getElementById('ymFilterLevel');
+var yearEl=document.getElementById('ymFilterYear');
+var gradeEl=document.getElementById('ymFilterGrade');
+
+var sortBy=sortEl?sortEl.value:'time';
+var fLevel=levelEl?levelEl.value:'';
+var fYear=yearEl?yearEl.value:'';
+var fGrade=gradeEl?gradeEl.value:'';
+
+// Populate year dropdown once
+if(yearEl && yearEl.options.length<=1){
+  var years=[];
+  items.forEach(function(x){if(x.year && years.indexOf(x.year)<0) years.push(x.year);});
+  years.sort().reverse();
+  years.forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;yearEl.appendChild(o);});
+}
+
+// Filter
+var filtered=[];
+for(var i=0;i<items.length;i++){
+  var x=items[i];
+  if(fLevel && x.level!==fLevel) continue;
+  if(fYear && x.year!==fYear) continue;
+  if(fGrade){
+    var g=x.grade||'';
+    if(g.indexOf(fGrade)===-1) continue;
+  }
+  filtered.push(x);
+}
+
+// Sort
+var lo={};
+lo['国家级']=1;lo['省部级']=2;lo['校级']=3;lo['']=9;
+if(sortBy==='time'){
+  filtered.sort(function(a,b){return (b.time||'0000').localeCompare(a.time||'0000');});
+}else if(sortBy==='time_asc'){
+  filtered.sort(function(a,b){return (a.time||'0000').localeCompare(b.time||'0000');});
+}else if(sortBy==='level'){
+  filtered.sort(function(a,b){
+    var la=lo[a.level]||9, lb=lo[b.level]||9;
+    if(la!==lb) return la-lb;
+    return (a.time||'0000').localeCompare(b.time||'0000');
+  });
+}else if(sortBy==='year'){
+  filtered.sort(function(a,b){
+    return (b.year||'0000').localeCompare(a.year||'0000')||(b.time||'0000').localeCompare(a.time||'0000');
+  });
+}
+
+// Group by category
+var groups={};
+filtered.forEach(function(x){
+  var cat=x.category||'其他';
+  if(!groups[cat]) groups[cat]={items:[]};
+  groups[cat].items.push(x);
+});
+var co={};
+co['竞赛获奖']=1;co['科创项目']=2;co['社会实践']=3;co['教师荣誉']=4;co['软件著作权']=5;
+var sortedCats=Object.keys(groups).sort(function(a,b){return (co[a]||9)-(co[b]||9);});
+
+var total=filtered.length;
+var statEl=document.getElementById('secStat');
+if(statEl) statEl.textContent='共 '+total+' 条记录（总计 '+items.length+' 条）';
+
+var html='';
+html+='<div class="profile-banner" style="margin-bottom:20px">';
+html+='<div class="profile-avatar" style="background:linear-gradient(135deg,#00838f,#00bcd4)">🎬</div>';
+html+='<div><div class="profile-name">壹幕工作室 (EMOVIE)</div>';
+html+='<div class="profile-meta">';
+html+='2016年创设 | 华东师范大学首个教师引领的大学生影视工作室<br>';
+html+='五大品牌栏目：壹幕速报 | 壹幕SHOW | 壹幕出品 | 壹幕个展 | 壹幕TALK秀<br>';
+html+='<a href="https://space.bilibili.com/65442113" target="_blank" rel="noopener">B站频道</a> · ';
+html+='<a href="https://live.bilibili.com/5254025" target="_blank" rel="noopener">B站直播间</a> · ';
+html+='<a href="https://www.deit.ecnu.edu.cn/20/07/c26198a270343/page.htm" target="_blank" rel="noopener">华东师大教信系专题</a>';
+html+='</div></div></div>';
+
+html+='<div class="yimu-stats">';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.award_national||0)+'</div><div class="ys-label">国家级获奖</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.award_provincial||0)+'</div><div class="ys-label">省部级获奖</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.award_total||0)+'</div><div class="ys-label">获奖总计</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.project_total||0)+'</div><div class="ys-label">科创项目</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.project_national||0)+'</div><div class="ys-label">国家级科创</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.honor_total||0)+'</div><div class="ys-label">教师荣誉</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.copyright_total||0)+'</div><div class="ys-label">软著</div></div>';
+html+='</div>';
+
+var ci={};
+ci['竞赛获奖']='🏆';ci['科创项目']='🔬';ci['社会实践']='🌱';ci['教师荣誉']='🏅';ci['软件著作权']='💻';
+var ch={};
+ch['竞赛获奖']=['年份','级别','等级','竞赛名称','作品名称','负责人','成员'];
+ch['科创项目']=['年份','级别','项目类别','项目名称','负责人','成员'];
+ch['社会实践']=['年份','项目名称','负责人','成员','活动'];
+ch['教师荣誉']=['年份','活动/项目','奖项'];
+ch['软件著作权']=['年份','授权号','申请号','软件名称','第一发明人','其他成员','学校登记','百度网盘'];
+
+sortedCats.forEach(function(cat){
+  var g=groups[cat];
+  var headers=ch[cat]||['年份','名称','备注'];
+  var blkId='ym-'+cat;
+  html+='<div class="block-card" id="blk-'+blkId+'" style="margin-top:12px">';
+  html+='<div class="block-header" onclick="toggleBlk(\''+blkId+'\')">';
+  html+='<div class="block-icon bicon-1">'+ci[cat]+'</div>';
+  html+='<div class="block-title">'+cat+'</div>';
+  html+='<span class="block-badge">'+g.items.length+' 条</span>';
+  html+='<span class="block-arrow" id="arr-'+blkId+'">▼</span>';
+  html+='</div><div class="block-body" id="bdy-'+blkId+'">';
+  html+='<table class="data-table"><thead><tr>';
+  headers.forEach(function(h){html+='<th>'+h+'</th>';});
+  html+='</tr></thead><tbody>';
+  g.items.forEach(function(x){
+    html+='<tr>';
+    if(cat==='竞赛获奖'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.level||'')+'</td><td>'+(x.grade||'')+'</td><td>'+(x.competition||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.members||'')+'</td>';
+    }else if(cat==='科创项目'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.level||'')+'</td><td>'+(x.grade||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.members||'')+'</td>';
+    }else if(cat==='社会实践'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.members||'')+'</td><td>'+(x.activity||'')+'</td>';
+    }else if(cat==='教师荣誉'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.activity||'')+(x.project?' / '+(x.project||''):'')+'</td><td>'+(x.award||x.note||'')+'</td>';
+    }else if(cat==='软件著作权'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.grant_number||'')+'</td><td>'+(x.app_number||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.other_names||'')+'</td><td>'+(x.cert_school||'')+'</td><td>'+(x.cert_baidu||'')+'</td>';
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table></div></div>';
+});
+
+if(events.length){
+  html+='<h4 style="margin:20px 0 12px;color:#636e72">📰 壹幕工作室相关新闻</h4>';
+  html+=renderNewsCards(events);
+}
+
+var ca=document.getElementById('contentArea');
+if(ca) ca.innerHTML=html;
+}
+
+function resetYmFilter(){
+  var s=document.getElementById('ymSort'); if(s) s.value='time';
+  var fl=document.getElementById('ymFilterLevel'); if(fl) fl.value='';
+  var fy=document.getElementById('ymFilterYear'); if(fy) fy.value='';
+  var fg=document.getElementById('ymFilterGrade'); if(fg) fg.value='';
+  renderYimu();
+}
+function renderMetaverse(){
+const events=ALL_DATA.metaverse.results||[];
+events.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+events.length+' 条';
+const cats=new Set(events.map(e=>e.category).filter(Boolean));
+const sel=document.getElementById('mvCat');
+if(sel&&sel.options.length===1){[...cats].sort().forEach(c=>{sel.innerHTML+='<option value="'+escAttr(c)+'">'+escHtml(c)+'</option>';});}
+let filtered=events;
+if(sel&&sel.value!=='all')filtered=events.filter(e=>e.category===sel.value);
+
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#6366f1,#a78bfa)">🌐</div><div><div class="profile-name">教育元宇宙未来课堂</div><div class="profile-meta">2022年世界人工智能大会首次发布 | 已在多地中小学试点推广<br><strong>子课程体系：</strong>花狮科学课堂 (CAVE沉浸式科学教育) | 红色记忆 (思政元宇宙课程)<br><strong>核心专利：</strong>教育元宇宙未来课堂 · 教育元宇宙交互系统 | 配套：数智大脑平台+小花狮AI数智学伴<br> <a href="https://www.ecnu.edu.cn/info/1094/69759.htm" target="_blank" rel="noopener">华东师大官网报道</a> · <a href="https://ercdee.ecnu.edu.cn/b0/97/c16571a700567/page.htm" target="_blank" rel="noopener">工程中心详情</a></div></div></div>';
+html+=renderNewsCards(filtered);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═══════ SECTION 4: BASE ═══════
+function renderBase(){
+const events=ALL_DATA.base.results||[];
+events.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+events.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#10b981,#34d399)">🏫</div><div><div class="profile-name">华东师范大学智慧教育产教基地</div><div class="profile-meta">2026年4月18日正式揭牌 | 全国首个"教育出题×高校解题×企业答题"协同平台<br>500㎡ "未来学校"样板间+超10000㎡专属办公空间 | 首批26家企业授牌<br> <a href="https://www.ecnu.edu.cn/info/1094/72008.htm" target="_blank" rel="noopener">华东师大报道</a> · <a href="http://www.deit.ecnu.edu.cn/55/9a/c26200a742810/page.htm" target="_blank" rel="noopener">教信系报道</a> · <a href="https://news.qq.com/rain/a/20260420A072MX00" target="_blank" rel="noopener">腾讯新闻</a> · <a href="https://www.sohu.com/a/1012120048_243614" target="_blank" rel="noopener">中国教育报</a></div></div></div>';
+html+=renderNewsCards(events);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═════ 渲染：我的动态 ═════
+function renderLulili(){
+const events=ALL_DATA.lulili||{};
+const list=events.results||[];
+list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+list.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#667eea,#764ba2)">👤</div><div><div class="profile-name">鲁力立 · 个人动态</div><div class="profile-meta">全网新闻链接追踪 · 时间覆盖 2011–2026<br>数据来源：主流媒体 + 学术平台 + 校内报道</div></div></div>';
+html+=renderNewsCards(list);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═════ 渲染：关联机构动态 ═════
+function renderRelated(){
+const events=ALL_DATA.related||{};
+const list=events.results||[];
+list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+list.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">🔗</div><div><div class="profile-name">关联机构动态</div><div class="profile-meta">华东师范大学 · 教育学部 · 教育信息技术学系 · 智慧教育产教基地<br>关联单位的最新动态与报道</div></div></div>';
+html+=renderNewsCards(list);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═════ 渲染：荣誉与成果 ═════
+function renderHonors(){
+const events=ALL_DATA.honors||{};
+const list=events.results||[];
+list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+list.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#fa709a,#fee140)">🏆</div><div><div class="profile-name">荣誉与成果</div><div class="profile-meta">教学获奖 · 科研获奖 · 指导学生获奖 · 社会服务荣誉</div></div></div>';
+html+=renderNewsCards(list);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═══════ SHARED: NEWS CARDS ═══════
+function renderNewsCards(events){
+if(!events.length)return '<div class="empty">暂无相关新闻</div>';
+return events.map(ev=>{
+const catClass=getCatClass(ev.category);
+const sources=ev.sources||[];
+const shortTitle=ev.title||'';
+const fullTitle=ev.title_full||ev.title||'';
+const shortSummary=ev.summary?(ev.summary.length>80?ev.summary.slice(0,80)+'...':ev.summary):'';
+return '<div class="news-card" id="nc-'+escAttr(ev.id)+'"><div class="news-header" onclick="toggleNews(\''+escAttr(ev.id)+'\')"><div class="news-date">'+ev.date+'</div><div class="news-body"><div class="news-title" title="'+escAttr(fullTitle)+'">'+escHtml(shortTitle)+'</div>'+(shortSummary?'<div class="news-summary">'+escHtml(shortSummary)+'</div>':'')+'<div class="news-meta">'+(ev.category?'<span class="news-cat '+catClass+'">'+escHtml(ev.category)+'</span>':'')+(sources.length?'<span class="news-src-count" onclick="event.stopPropagation();toggleNews(\''+escAttr(ev.id)+'\')">📎 '+sources.length+' 个来源</span>':'')+'</div></div></div><div class="news-full" id="nf-'+escAttr(ev.id)+'">'+(fullTitle!==shortTitle?'<div class="news-full-title"><b>完整标题：</b>'+escHtml(fullTitle)+'</div>':'')+(ev.summary&&ev.summary.length>80?'<div class="news-full-summary"><b>完整摘要：</b>'+escHtml(ev.summary)+'</div>':'')+'</div>'+(sources.length?'<div class="news-sources" id="ns-'+escAttr(ev.id)+'">'+sources.map(s=>'<div class="news-src-item"><a href="'+escAttr(s.url)+'" target="_blank" rel="noopener" class="news-src-name">'+escHtml(s.name)+'</a><span class="news-src-url">'+escHtml(s.url)+'</span>'+(s.date?'<span class="news-src-date">'+s.date+'</span>':'')+'</div>').join('')+'</div>':'')+'</div>';
+}).join('');
+}
+
+function toggleNews(id){var el=document.getElementById('ns-'+id);if(el)el.classList.toggle('show');var fl=document.getElementById('nf-'+id);if(fl)fl.classList.toggle('show');}
+
+function getCatClass(cat){
+const m={'媒体报道':'cat-media','项目里程碑':'cat-project','学术成果':'cat-academic','荣誉奖项':'cat-honors','教学活动':'cat-teaching','基地建设':'cat-base','学术会议':'cat-conference','创业动态':'cat-startup','壹幕工作室':'cat-yimu','重大事件':'cat-base','基础设施':'cat-project','服务社会':'cat-service'};
+return m[cat]||'cat-project';}
+function escHtml(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';}
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+init();
+
+// ═══════ 导出功能 ═══════
+function getBlockData(idx){
+  const blocks=ALL_DATA.profile.results||[];
+  return blocks[idx]||{title:'',subsections:[]};
+}
+
+function exportBlockExcel(idx){
+  const block=getBlockData(idx);
+  const csv=blockToCsv(block);
+  downloadFile(block.title+'.csv', csv, 'text/csv;charset=utf-8');
+}
+
+function exportBlockWord(idx){
+  const block=getBlockData(idx);
+  const html=blockToWordHtml(block);
+  downloadFile(block.title+'.doc', html, 'application/msword;charset=utf-8');
+}
+
+function exportAllProfileExcel(){
+  const blocks=ALL_DATA.profile.results||[];
+  const all=blocks.map(b=>blockToCsv(b)).join('\n\n');
+  downloadFile('鲁力立个人全貌_全部板块.csv', all, 'text/csv;charset=utf-8');
+}
+
+function exportAllProfileWord(){
+  const blocks=ALL_DATA.profile.results||[];
+  const html='<html><head><meta charset="UTF-8"><style>body{font-family:PingFang SC,Microsoft YaHei,sans-serif;line-height:1.8}h1{color:#4834d4;border-bottom:2px solid #4834d4;padding-bottom:6px}h2{color:#636e72;margin-top:16px}p{margin:4px 0}table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:6px 10px;border:1px solid #ddd;text-align:left}</style></head><body>'+blocks.map(b=>blockToWordHtml(b)).join('<hr style="margin:20px 0">')+'</body></html>';
+  downloadFile('鲁力立个人全貌_全部板块.doc', html, 'application/msword;charset=utf-8');
+}
+
+function exportYimuExcel(){
+  const data=ALL_DATA.yimu?.results||ALL_DATA.yimu||[];
+  const records=Array.isArray(data)?data:[];
+  if(!records.length){alert('暂无壹幕工作室数据');return;}
+  const keys=Object.keys(records[0]||{});
+  const lines=['\uFEFF'+keys.join(',')];
+  records.forEach(r=>lines.push(keys.map(k=>'"'+String(r[k]||'').replace(/"/g,'""')+'"').join(',')));
+  downloadFile('壹幕工作室学生成果.csv', lines.join('\n'), 'text/csv;charset=utf-8');
+}
+
+function exportYimuWord(){
+  const data=ALL_DATA.yimu?.results||ALL_DATA.yimu||[];
+  const records=Array.isArray(data)?data:[];
+  if(!records.length){alert('暂无壹幕工作室数据');return;}
+  let html='<html><head><meta charset="UTF-8"><style>body{font-family:PingFang SC,Microsoft YaHei,sans-serif}h1{color:#00838f}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:5px 7px;border:1px solid #ccc}</style></head><body><h1>壹幕工作室学生成果</h1><table>';
+  const keys=Object.keys(records[0]||{});
+  html+='<tr>'+keys.map(k=>'<th>'+k+'</th>').join('')+'</tr>';
+  records.forEach(r=>html+='<tr>'+keys.map(k=>'<td>'+escHtml(String(r[k]||''))+'</td>').join('')+'</tr>');
+  html+='</table></body></html>';
+  downloadFile('壹幕工作室学生成果.doc', html, 'application/msword;charset=utf-8');
+}
+
+// ═════ 通用分区导出 ═════
+function escCsv(s){return '"'+String(s||'').replace(/"/g,'""')+'"';}
+
+function exportSectionExcel(sec){
+  if(sec==='profile'){exportAllProfileExcel();return;}
+  if(sec==='yimu'){exportYimuExcel();return;}
+  const data=ALL_DATA[sec]||{};
+  const list=data.results||[];
+  if(!list.length){alert('暂无数据');return;}
+  const lines=['\uFEFF标题,日期,类别,链接'];
+  list.forEach(ev=>{
+    lines.push([escCsv(ev.title_full||ev.title||''), (ev.date||''), (ev.category||''), (ev.link||'')].join(','));
+  });
+  downloadFile(sec+'.csv', lines.join('\n'), 'text/csv;charset=utf-8');
+}
+
+function exportSectionWord(sec){
+  if(sec==='profile'){exportAllProfileWord();return;}
+  if(sec==='yimu'){exportYimuWord();return;}
+  const data=ALL_DATA[sec]||{};
+  const list=data.results||[];
+  if(!list.length){alert('暂无数据');return;}
+  const colorMap={lulili:'#667eea',metaverse:'#f093fb',base:'#4facfe',related:'#43e97b',honors:'#fa709a'};
+  const c=colorMap[sec]||'#555';
+  let html='<html><head><meta charset="UTF-8"><style>body{font-family:PingFang SC,Microsoft YaHei,sans-serif}h1{color:'+c+';border-bottom:2px solid '+c+';padding-bottom:8px}table{width:100%;border-collapse:collapse;font-size:13px}th{padding:7px 10px;border:1px solid #ccc;background:#f0f0f0;text-align:left}td{padding:7px 10px;border:1px solid #ccc}</style></head><body><h1>'+escHtml(sec)+'</h1><table><tr><th>标题</th><th>日期</th><th>类别</th><th>链接</th></tr>';
+  list.forEach(ev=>{
+    html+='<tr><td>'+escHtml(ev.title_full||ev.title||'')+'</td><td>'+(ev.date||'')+'</td><td>'+(ev.category||'')+'</td><td>'+(ev.link?'<a href="'+escAttr(ev.link)+'">链接</a>':'')+'</td></tr>';
+  });
+  html+='</table></body></html>';
+  downloadFile(sec+'.doc', html, 'application/msword;charset=utf-8');
+}
+
+function blockToCsv(block){
+  const lines=['板块,'+block.title];
+  for(const sub of (block.subsections||[])){
+    lines.push('子板块,'+sub.title);
+    if(sub.type==='table'&&sub.rows){
+      lines.push(sub.columns?sub.columns.join(','):'');
+      sub.rows.forEach(r=>lines.push(r.join(',')));
+    }
+    for(const item of (sub.items||[])){
+      lines.push((item.label||'')+','+String(item.value||'').replace(/,/g,'，'));
+    }
+  }
+  return '\uFEFF'+lines.join('\n');
+}
+
+function blockToWordHtml(block){
+  let h='<h1>'+escHtml(block.title)+'</h1>';
+  for(const sub of (block.subsections||[])){
+    h+='<h2>'+escHtml(sub.title)+'</h2>';
+    if(sub.type==='table'&&sub.rows){
+      h+='<table>'+((sub.columns||[]).map(c=>'<th>'+escHtml(c)+'</th>').join(''))+'</th></tr>';
+      sub.rows.forEach(r=>h+='<tr>'+r.map(c=>'<td>'+escHtml(String(c||''))+'</td>').join('')+'</tr>');
+      h+='</table>';
+    }
+    for(const item of (sub.items||[])){
+      h+='<p><b>'+escHtml(item.label||'')+'：</b>'+escHtml(String(item.value||''))+'</p>';
+    }
+  }
+  return h;
+}
+
+function downloadFile(filename,content,mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ═══════ 全局检索 ═══════
+let searchTimer=null;
+
+function doGlobalSearch(q){
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>_doSearch(q.trim()),200);
+}
+
+function _doSearch(q){
+  const container=document.getElementById('searchResults');
+  const noResults=document.getElementById('searchNone');
+  if(!q||q.length<1){container.innerHTML='';noResults.style.display='none';return;}
+
+  const results=[],ql=q.toLowerCase();
+
+  // 搜索 profile
+  (ALL_DATA.profile.results||[]).forEach((block,bi)=>{
+    (block.subsections||[]).forEach(sub=>{
+      (sub.items||[]).forEach(item=>{
+        const val=(item.label||'')+' '+(item.value||'');if(val.toLowerCase().indexOf(ql)<0)return;
+        results.push({sec:'personal',topic:'个人全貌',match:sub.title+' > '+item.label,context:item.value,idx:bi,label:item.label});
+      });
+      if(sub.type==='table'&&sub.rows){
+        sub.rows.forEach(row=>{
+          const val=row.join(' ');if(val.toLowerCase().indexOf(ql)<0)return;
+          results.push({sec:'personal',topic:'个人全貌',match:sub.title+'（表格）',context:row.slice(0,3).join(' | '),idx:bi});
+        });
+      }
+    });
+  });
+
+  // 搜索 yimu
+  const yimuData=ALL_DATA.yimu?.results||ALL_DATA.yimu||[];
+  (Array.isArray(yimuData)?yimuData:[]).forEach(rec=>{
+    const val=Object.values(rec||{}).join(' ');if(val.toLowerCase().indexOf(ql)<0)return;
+    results.push({sec:'yimu',topic:'壹幕工作室',match:(rec.category||'')+' > '+(rec.project||rec.name||''),context:(rec.name||'')+' '+String(rec.award||'')});
+  });
+
+  // 搜索 metaverse
+  (ALL_DATA.metaverse?.results||[]).forEach(item=>{
+    const val=(item.title||'')+' '+(item.snippet||'');if(val.toLowerCase().indexOf(ql)<0)return;
+    results.push({sec:'metaverse',topic:'教育元宇宙',match:item.title||'',context:item.snippet||''});
+  });
+
+  // 搜索 base
+  (ALL_DATA.base?.results||[]).forEach(item=>{
+    const val=(item.title||'')+' '+(item.snippet||'');if(val.toLowerCase().indexOf(ql)<0)return;
+    results.push({sec:'base',topic:'产教基地',match:item.title||'',context:item.snippet||''});
+  });
+
+  if(results.length===0){container.innerHTML='';noResults.style.display='block';}
+  else{noResults.style.display='none';container.innerHTML=results.slice(0,30).map((r,i)=>{
+    return '<div class="sr-item" style="display:block" onclick="navigateToSec(\''+r.sec+'\','+(r.idx||0)+')"><div class="sr-topic">['+r.topic+']</div><div class="sr-match">'+htmlHighlight(r.match,q)+'</div><div class="sr-info">'+escHtml(String(r.context||'').substring(0,120))+'</div></div>';
+  }).join('');}
+}
+
+function navigateToSec(sec,idx){
+  switchSection(sec);
+  document.getElementById('globalSearch').value='';
+  document.getElementById('searchResults').innerHTML='';
+  document.getElementById('searchNone').style.display='none';
+  setTimeout(()=>{
+    if(sec==='personal'){const el=document.getElementById('blk-'+idx);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}
+  },300);
+}
+
+function htmlHighlight(text,q){
+  const escaped=escHtml(String(text||''));
+  if(!q)return escaped;
+  try{
+    const escapedQ=q.replace(/[.*+?^${}()|[\]\/]/g,'\\$&');
+    const re=new RegExp('('+escapedQ+')','gi');
+    return escaped.replace(re,'<mark>$1</mark>');
+  }catch(e){
+    return escaped;
+  }
+}
+// ============ 刷新相关 ============
+function triggerRefresh(){
+  // 检测是否在 Flask 服务器环境
+  var isServer=/^https?:\/\//.test(location.protocol)||location.hostname!=='localhost'&&location.hostname!=='127.0.0.1';
+  // 尝试调用刷新 API（如果服务器支持）
+  fetch('/api/refresh',{method:'POST',cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
+    if(d.status==='started'){
+      showRefreshToast('正在搜索全网最新动态，请稍候…');
+      pollRefreshStatus();
+    }else{
+      openRefreshModal();
+    }
+  }).catch(function(){
+    openRefreshModal();
+  });
+}
+
+function openRefreshModal(){document.getElementById('refreshModal').style.display='flex';}
+function closeRefreshModal(){document.getElementById('refreshModal').style.display='none';}
+
+function showRefreshToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2d3436;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:10000;box-shadow:0 4px 20px rgba(0,0,0,.2)';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove()},4000);
+}
+
+function pollRefreshStatus(){
+  fetch('/api/refresh/status',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
+    if(d.status==='done'){
+      showRefreshToast('✅ 数据已更新！正在刷新页面…');
+      setTimeout(function(){location.reload()},1500);
+    }else if(d.status==='running'){
+      setTimeout(pollRefreshStatus,3000);
+    }else{
+      openRefreshModal();
+    }
+  }).catch(function(){openRefreshModal()});
+}
+
+function loadUpdateTime(){
+  var el=document.getElementById('updateTime');
+  try{
+    // 优先使用 navigation.timing (现代 API)
+    var timing=performance.timing;
+    var navStart=timing&&timing.navigationStart?timing.navigationStart:Date.now();
+    var d=new Date(navStart);
+    el.textContent='数据版本：'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }catch(e){
+    el.textContent='数据版本：2026-06-07';
+  }
+}
+
+loadUpdateTime();
+
+// ═════ 智能对话功能 ═════
+let chatHistory=[];
+let chatLoading=false;
+
+function chatShowSettings(){
+  document.getElementById('chatSettingsOverlay').style.display='flex';
+  const input=document.getElementById('chatApiKeyInput');
+  const saved=localStorage.getItem('deepseek_api_key')||'';
+  input.value=saved?'sk-****'+saved.slice(-4):'';
+  input.dataset.saved=saved;
+}
+
+function chatSaveKey(){
+  const input=document.getElementById('chatApiKeyInput');
+  let key=input.value.trim();
+  if(key.indexOf('****')!=-1){key=input.dataset.saved||'';}
+  if(!key||!key.startsWith('sk-')){alert('请输入有效的 DeepSeek API Key（以 sk- 开头）');return;}
+  localStorage.setItem('deepseek_api_key',key);
+  document.getElementById('chatSettingsOverlay').style.display='none';
+  alert('✅ API Key 已保存！您可以开始对话了。');
+}
+
+function chatToggle(){
+  const panel=document.getElementById('chatPanel');
+  const fab=document.getElementById('chatFab');
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open')){document.getElementById('chatInput').focus();}
+}
+
+function chatAddMsg(role,content){
+  const wrap=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='chat-msg '+(role==='user'?'user':'ai');
+  div.textContent=content;
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+  return div;
+}
+
+function chatAddMsgHtml(role,html){
+  const wrap=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='chat-msg '+(role==='user'?'user':'ai');
+  div.innerHTML=html;
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+  return div;
+}
+
+// 判断当前环境
+function chatGetApiConfig(){
+  var port=location.port;
+  var host=location.hostname;
+  // Flask 模式（端口 8888）：通过 Flask 代理调用
+  if(host==='localhost'||host==='127.0.0.1'){
+    if(port==='8888'){
+      return {url:'/api/chat', mode:'flask', needKey:false};
+    }
+    // 迷你服务器模式（端口 8000）：通过同源代理调用
+    if(port==='8000'){
+      return {url:'/api/chat', mode:'standalone-server', needKey:false};
+    }
+  }
+  // file:// 协议或其他：无法跨域
+  return {url:'', mode:'file', needKey:false, error:'CORS'};
+}
+
+function chatSend(){
+  if(chatLoading)return;
+  const input=document.getElementById('chatInput');
+  const q=input.value.trim();
+  if(!q)return;
+  input.value='';
+
+  const apiCfg=chatGetApiConfig();
+
+  // 独立版需要 Key
+  if(apiCfg.needKey){
+    const apiKey=localStorage.getItem('deepseek_api_key')||'';
+    if(!apiKey||!apiKey.startsWith('sk-')){
+      chatShowSettings();
+      return;
+    }
+  }
+
+  // 显示用户消息
+  chatAddMsg('user',q);
+
+  // 显示加载中
+  const loadingDiv=chatAddMsgHtml('ai','<span class="loading-dots">思考中…</span>');
+
+  chatLoading=true;
+  document.getElementById('chatSendBtn').disabled=true;
+
+  // 构造 context（将 ALL_DATA 序列化为可读文本）
+  let context='';
+  try{
+    context=JSON.stringify(ALL_DATA,null,2);
+    if(context.length>12000){context=context.slice(0,12000)+'\n...(数据过长已截断）';}
+  }catch(e){context='数据解析失败：'+String(e);}
+
+  const messages=[
+    {role:'system',content:'你是鲁力立学术动态监控系统的AI助手。请根据提供的JSON数据回答用户问题。数据包含鲁力立的个人基本信息、教育背景、职务身份、壹幕工作室成果、教育元宇宙未来课堂项目、智慧教育产教基地、个人动态新闻、关联机构动态、荣誉成果等内容。请用简洁专业的语言回答，引用数据中的具体内容。如果数据中没有相关信息，请如实告知。'},
+    {role:'system',content:'以下是鲁力立的全部数据（JSON格式）：\n'+context},
+    ...chatHistory.slice(-6),
+    {role:'user',content:q}
+  ];
+
+  var fetchUrl=apiCfg.url;
+  var fetchOpts={
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'deepseek-chat',messages:messages,temperature:0.3})
+  };
+
+  // 独立版需要添加 Authorization
+  if(apiCfg.needKey){
+    fetchOpts.headers['Authorization']='Bearer '+localStorage.getItem('deepseek_api_key');
+  }
+
+  fetch(fetchUrl,fetchOpts)
+  .then(function(r){
+    if(!r.ok){
+      // 尝试读取错误详情
+      return r.json().then(function(errBody){
+        var msg='API 请求失败（状态码 '+r.status+'）';
+        if(errBody&&errBody.error){
+          var de=errBody.error;
+          if(de.message) msg=de.message;
+          if(de.code&&de.code==='invalid_request_error'){
+            if(de.message.indexOf('Insufficient Balance')>=0) msg='DeepSeek 账户余额不足，请前往 platform.deepseek.com 充值';
+            else if(de.message.indexOf('Authentication')>=0) msg='API Key 无效，请重新设置';
+          }
+        }
+        throw new Error(msg);
+      });
+    }
+    return r.json();
+  })
+  .then(function(d){
+    var answer=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'（未获取到回答）';
+    loadingDiv.textContent=answer;
+    chatHistory.push({role:'user',content:q});
+    chatHistory.push({role:'assistant',content:answer});
+    if(chatHistory.length>20)chatHistory=chatHistory.slice(-20);
+  })
+  .catch(function(e){
+    var errMsg=String(e.message||e);
+    var tip='';
+    var cfg=chatGetApiConfig();
+    if(cfg.mode==='file'){
+      tip='<br><span style="font-size:12px;color:#ef4444">⚠️ 当前以本地文件（file://）方式打开，浏览器安全限制阻止了网络请求。<br><br>✅ 解决方案：双击 <b>start.command</b>（macOS）或 <b>start.bat</b>（Windows）启动本地服务器，或访问 <b>http://localhost:8888</b>（Flask 模式）。</span>';
+    }else if(errMsg.indexOf('余额不足')>=0||errMsg.indexOf('Insufficient Balance')>=0){
+      tip='<br><span style="font-size:11px;color:#f39c12">DeepSeek 账户余额不足，请前往 <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:#f39c12">platform.deepseek.com</a> 充值（最低 10 元）。</span>';
+    }else if(errMsg.indexOf('Invalid')>=0||errMsg.indexOf('Authentication')>=0){
+      tip='<br><span style="font-size:11px;color:#b2bec3">API Key 无效，请点击 ⚙️ 重新设置。</span>';
+    }else if(errMsg.indexOf('Failed to fetch')>=0||errMsg.indexOf('NetworkError')>=0){
+      tip='<br><span style="font-size:11px;color:#f39c12">网络连接失败，请检查网络或确认服务器已启动。</span>';
+    }else{
+      tip='<br><span style="font-size:11px;color:#b2bec3">请检查网络连接，或刷新页面重试。</span>';
+    }
+    loadingDiv.innerHTML='<span style="color:#ef4444">⚠️ '+escHtml(errMsg)+'</span>'+tip;
+  })
+  .finally(function(){
+    chatLoading=false;
+    document.getElementById('chatSendBtn').disabled=false;
+  });
+}
+
+function chatHandleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chatSend();}
+}
+
+function chatClearHistory(){
+  if(!confirm('确定要清空对话历史吗？'))return;
+  chatHistory=[];
+  var mode=chatGetApiConfig().mode;
+  var tip='';
+  if(mode==='flask'){
+    tip='（Flask 代理模式，无需设置 Key）';
+  }else if(mode==='standalone-server'){
+    tip='（本地服务器代理模式，无需设置 Key）';
+  }else{
+    tip='请先点击 ⚙️ 设置 DeepSeek API Key，然后输入您的问题。';
+  }
+  document.getElementById('chatMessages').innerHTML='<div class="chat-msg ai">👋 您好！我是鲁力立学术动态监控系统的 AI 助手。<br><br>我可以帮您：<br>• 概述项目情况（如"概述教育元宇宙未来课堂项目"）<br>• 查询荣誉成果（如"鲁力立获得了哪些荣誉？"）<br>• 统计数据分析（如"壹幕工作室有多少项获奖？"）<br><br>'+tip+'</div>';
+}
+</script>
+
+<!-- ═════ 智能对话：悬浮按钮 ═════ -->
+<button class="chat-fab" id="chatFab" onclick="chatToggle()" title="智能对话">
+  💬
+  <span class="badge" id="chatBadge" style="display:none">!</span>
+</button>
+
+<!-- ═════ 智能对话：聊天面板 ═════ -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-hd">
+    <h3>🤖 智能对话助手</h3>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="chatClearHistory()" title="清空对话" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">🗑️</button>
+      <button onclick="chatShowSettings()" title="设置 API Key" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">⚙️</button>
+      <button class="close-btn" onclick="chatToggle()">✕</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg ai">👋 您好！我是鲁力立学术动态监控系统的 AI 助手。<br><br>我可以帮您：<br>• 概述项目情况（如"概述教育元宇宙未来课堂项目"）<br>• 查询荣誉成果（如"鲁力立获得了哪些荣誉？"）<br>• 统计数据分析（如"壹幕工作室有多少项获奖？"）<br><br>请先点击 ⚙️ 设置 DeepSeek API Key，然后输入您的问题。</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="输入您的问题…" onkeydown="chatHandleKey(event)">
+    <button id="chatSendBtn" onclick="chatSend()">发送</button>
+  </div>
+</div>
+
+<!-- ═════ 智能对话：API Key 设置弹窗 ═════ -->
+<div class="chat-settings-overlay" id="chatSettingsOverlay" style="display:none">
+  <div class="chat-settings-box">
+    <h3>⚙️ 设置 DeepSeek API Key</h3>
+    <p>请输入您的 <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:#4834d4">DeepSeek API Key</a>，用于驱动智能对话功能。<br>Key 将保存在浏览器本地（localStorage），不会上传至任何服务器。<br><br><strong>获取方式：</strong>登录 DeepSeek 开放平台 → API Keys → 创建新 Key</p>
+    <input type="password" id="chatApiKeyInput" placeholder="sk-..." autocomplete="off">
+    <div class="chat-status" id="chatStatus"></div>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="document.getElementById('chatSettingsOverlay').style.display='none'">取消</button>
+      <button class="btn-save" onclick="chatSaveKey()">保存</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

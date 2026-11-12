@@ -1,0 +1,8 @@
+# 核心依赖
+Flask>=3.0
+openpyxl>=3.1          # Excel 导出
+python-docx>=1.1       # Word 导出
+
+# 在线检索（可选：不装也能用，只是无法触发实时搜索）
+duckduckgo-search>=6.0
+requests>=2.31

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# WorkBuddy local automation/memory (project-specific, not needed for deployment)
+.workbuddy/
+
+# Extracted raw data from personal documents (internal use only)
+data_extract/
+
+# Logs
+*.log
+
+# 环境变量与密钥（务必不要提交）
+.env
+.env.local
+*.pem
+
+# 数据备份文件（*.bak.json / *.bak2.json / *.bak4.json ...）
+*.bak
+*.bak.*
+*.bak*.json
+*_backup_*.json

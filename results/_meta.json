@@ -1,0 +1,37 @@
+{
+  "updated_at": "2026-11-12",
+  "total_events": 384,
+  "sources": [
+    {
+      "file": "lulili.json",
+      "topic": "鲁力立个人动态",
+      "event_count": 86
+    },
+    {
+      "file": "metaverse.json",
+      "topic": "教育元宇宙未来课堂",
+      "event_count": 28
+    },
+    {
+      "file": "base.json",
+      "topic": "智慧教育产教基地",
+      "event_count": 20
+    },
+    {
+      "file": "yimu.json",
+      "topic": "壹幕工作室",
+      "event_count": 197
+    },
+    {
+      "file": "related.json",
+      "topic": "关联机构与学术动态",
+      "event_count": 32
+    },
+    {
+      "file": "honors.json",
+      "topic": "荣誉与成果",
+      "event_count": 11
+    }
+  ],
+  "profile_sections": 5
+}

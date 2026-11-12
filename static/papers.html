@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文原文库 - 鲁力立学术动态监控</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0f0f23;color:#dfe6e9;font-family:'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;min-height:100vh;}
+.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:28px 24px;text-align:center;position:relative;}
+.header h1{font-size:24px;color:#fff;margin-bottom:6px;}
+.header p{font-size:13px;color:rgba(255,255,255,0.7);}
+.header .back{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:#fff;text-decoration:none;font-size:14px;background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:8px;transition:background 0.2s;}
+.header .back:hover{background:rgba(255,255,255,0.25);}
+.container{max-width:1200px;margin:0 auto;padding:24px 16px;}
+.stats-bar{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+.stat-card{background:#1a1a2e;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 24px;flex:1;min-width:140px;text-align:center;}
+.stat-card .num{font-size:28px;font-weight:700;color:#667eea;}
+.stat-card .label{font-size:12px;color:#b2bec3;margin-top:4px;}
+.filter-bar{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center;}
+.filter-bar select,.filter-bar input{background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);color:#dfe6e9;padding:8px 14px;border-radius:8px;font-size:13px;outline:none;}
+.filter-bar select:focus,.filter-bar input:focus{border-color:#667eea;}
+.filter-bar input{flex:1;min-width:200px;}
+.paper-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;}
+.paper-card{background:#1a1a2e;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px;transition:all 0.3s;position:relative;overflow:hidden;}
+.paper-card:hover{border-color:rgba(102,126,234,0.4);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.paper-card .paper-num{position:absolute;top:12px;right:16px;font-size:28px;font-weight:800;color:rgba(102,126,234,0.12);}
+.paper-card .paper-year{display:inline-block;background:rgba(102,126,234,0.15);color:#a18cd1;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:8px;}
+.paper-card .paper-level{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:600;margin-left:6px;}
+.level-ssci{background:rgba(250,112,154,0.15);color:#fa709a;}
+.level-cssci{background:rgba(34,197,94,0.15);color:#22c55e;}
+.level-intl{background:rgba(79,172,254,0.15);color:#4facfe;}
+.level-conf{background:rgba(240,147,251,0.15);color:#f093fb;}
+.level-core{background:rgba(255,193,7,0.15);color:#ffc107;}
+.level-prov{background:rgba(176,190,197,0.15);color:#b0bec4;}
+.paper-card .paper-title{font-size:14px;line-height:1.6;color:#dfe6e9;margin-bottom:10px;font-weight:500;}
+.paper-card .paper-journal{font-size:12px;color:#b2bec3;margin-bottom:6px;}
+.paper-card .paper-role{font-size:12px;color:#636e72;margin-bottom:12px;}
+.paper-card .paper-actions{display:flex;gap:10px;}
+.paper-card .btn{display:inline-flex;align-items:center;gap:4px;padding:7px 16px;border-radius:8px;font-size:13px;text-decoration:none;cursor:pointer;transition:all 0.2s;border:none;}
+.btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.btn-view:hover{opacity:0.85;transform:scale(1.03);}
+.btn-download{background:rgba(250,112,154,0.15);color:#fa709a;border:1px solid rgba(250,112,154,0.3);}
+.btn-download:hover{background:rgba(250,112,154,0.25);}
+.no-pdf{display:inline-flex;align-items:center;gap:4px;padding:7px 16px;border-radius:8px;font-size:13px;color:#636e72;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.08);}
+.empty{text-align:center;padding:60px;color:#636e72;font-size:14px;}
+.footer{text-align:center;padding:24px;color:#636e72;font-size:12px;}
+@media(max-width:600px){
+.paper-grid{grid-template-columns:1fr;}
+.header h1{font-size:20px;}
+}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="/" class="back">← 返回仪表盘</a>
+<h1>论文原文库</h1>
+<p>鲁力立学术论文全文PDF · 在线查看与下载</p>
+</div>
+<div class="container">
+<div class="stats-bar" id="statsBar"></div>
+<div class="filter-bar">
+<select id="fYear"><option value="">全部年份</option></select>
+<select id="fLevel">
+<option value="">全部级别</option>
+<option value="SSCI">SSCI</option>
+<option value="CSSCI">CSSCI</option>
+<option value="国际期刊">国际期刊</option>
+<option value="国际会议B类">国际会议B类</option>
+<option value="北大核心">北大核心</option>
+<option value="省级期刊">省级期刊</option>
+<option value="会议论文">会议论文</option>
+<option value="著作收录">著作收录</option>
+<option value="电子刊">电子刊</option>
+</select>
+<select id="fHas">
+<option value="">全部论文</option>
+<option value="yes">仅有原文</option>
+<option value="no">仅无原文</option>
+</select>
+<input type="text" id="fSearch" placeholder="搜索论文标题、关键词...">
+</div>
+<div class="paper-grid" id="paperGrid"></div>
+<div class="footer">鲁力立学术动态监控系统 · 论文原文库</div>
+</div>
+<script>
+var PAPERS=[
+{num:"[1]",year:"2026",level:"SSCI",journal:"Acta Psychologica",role:"共同作者",
+title:"WANG Yilei, LU Lili, MA Yuanqian, et al. Virtual reality in physiological education: Influence of learning modality and learner characteristics on learning outcomes[J]. Acta Psychologica, 2026, 267.",
+pdf:"/static/papers/paper_01_VR_physiological_education.pdf"},
+{num:"[2]",year:"2025",level:"国际期刊",journal:"JCER",role:"第一作者",
+title:"LU Lili, ZHAO Y, MA P, et al. Opportunities and Challenges of Educational Evaluation in the Metaverse[J]. Journal of Contemporary Educational Research, 2025, 9(7): 226-231.",
+pdf:"/static/papers/paper_02_educational_evaluation_metaverse.pdf"},
+{num:"[3]",year:"2024",level:"CSSCI",journal:"现代教育技术",role:"通讯作者",
+title:"赵衍, 鲁力立（通讯作者）. 基于深度学习的到课率统计系统设计与实现[J]. 现代教育技术, 2024, 34(02): 108-117.",
+pdf:"/static/papers/paper_03_deep_learning_attendance.pdf"},
+{num:"[4]",year:"2023",level:"CSSCI",journal:"图书馆论坛",role:"第一作者",
+title:"鲁力立, 陆怡婕, 许鑫. 寓教于乐：元宇宙视角下口头文学类非遗的科普VR设计[J]. 图书馆论坛, 2023, 43(02): 141-149.",
+pdf:"/static/papers/paper_04_edutainment_VR_intangible_heritage.pdf"},
+{num:"[5]",year:"2023",level:"国际会议B类",journal:"EIMT 2023",role:"第一作者",
+title:"LU Lili, MENG Zinan. Design and Research of Educational Teaching Service System Based on Meta-universe Environment[C]. EIMT 2023.",
+pdf:"/static/papers/paper_05_metaverse_english_speaking.pdf"},
+{num:"[6]",year:"2023",level:"国际会议B类",journal:"GCCCE 2023",role:"通讯作者",
+title:"陆怡婕, 吴诚薇, 鲁力立（通讯作者）, 等. 针对口头文学类非遗'沪谚'的在线数字游戏设计[C]. GCCCE 2023论文集, 2023: 234-244.",
+pdf:"/static/papers/paper_06_huyan_digital_game.pdf"},
+{num:"[7]",year:"2022",level:"北大核心",journal:"中国果树",role:"第一作者",
+title:"鲁力立. 在线视频教学模式助力农村基础教育研究[J]. 中国果树, 2022, (01): 112-113.",
+pdf:""},
+{num:"[8]",year:"2022",level:"省级期刊",journal:"艺术教育",role:"第一作者",
+title:"鲁力立, 任子佳, 於津因. 新时代学校美育背景下的高中影视鉴赏课程设计与应用[J]. 艺术教育, 2022, (01): 137-140.",
+pdf:"/static/papers/paper_08_film_appreciation_high_school.pdf"},
+{num:"[9]",year:"2022",level:"CSSCI",journal:"图书馆论坛",role:"第一作者",
+title:"鲁力立, 许鑫. 从'混合'到'混沌'：元宇宙视角下的未来教学模式探讨——以华东师范大学云展厅策展课程为例[J]. 图书馆论坛, 2022, 42(01): 53-61.",
+pdf:"/static/papers/paper_09_mixed_to_chaos_metaverse.pdf"},
+{num:"[10]",year:"2021",level:"电子刊",journal:"当代教育实践与教学研究",role:"第一作者",
+title:"鲁力立. 移动互联网模式下针对'00后'大学生的在线实时教学方法的探讨[J]. 当代教育实践与教学研究（电子刊）, 2021(4): 16-17.",
+pdf:""},
+{num:"[11]",year:"2017",level:"省级期刊",journal:"中国教育技术装备",role:"通讯作者",
+title:"王巍, 鲁力立（通讯作者）, 吴永和. 高校案例教学虚拟社区建设理念及方案探究——以华东师范大学教育信息技术学系本科生优秀案例资源库为例[J]. 中国教育技术装备, 2017(18): 6-8, 13.",
+pdf:"/static/papers/paper_11_virtual_community_case_teaching.pdf"},
+{num:"[12]",year:"2017",level:"省级期刊",journal:"视听",role:"第一作者",
+title:"鲁力立, 谭文静. 关于我国预防医学类电视公益广告的现状调查与对策分析[J]. 视听, 2017(10): 183-185.",
+pdf:"/static/papers/paper_12_TV_PSAs_preventive_medicine.pdf"},
+{num:"[13]",year:"2017",level:"著作收录",journal:"中国传媒大学出版社",role:"第一作者",
+title:"鲁力立. 基于视听语言的中西方教育主题纪录片比较研究[C]//王建国, 胡智锋. 图景与前景——'互联网+'时代的中国影视. 北京: 中国传媒大学出版社, 2017.",
+pdf:""},
+{num:"[14]",year:"2016",level:"会议论文",journal:"中国高校影视学会年会",role:"第一作者",
+title:"鲁力立, 张婷婷. 基于视听语言的中西方教育主题纪录片比较研究[C]. 中国高等院校影视学会第十六届年会暨第九届中国影视高层论坛论文集, 2016: 201-209.",
+pdf:"/static/papers/paper_14_documentary_comparison.pdf"},
+{num:"[15]",year:"2015",level:"省级期刊",journal:"西部广播电视",role:"第一作者",
+title:"鲁力立. 教育影视作品在高校教学实践中的应用研究[J]. 西部广播电视, 2015(24): 30.",
+pdf:"/static/papers/paper_15_educational_film_teaching.pdf"}
+];
+function levelClass(l){
+var m={'SSCI':'level-ssci','CSSCI':'level-cssci','国际期刊':'level-intl','国际会议B类':'level-intl','会议论文':'level-conf','北大核心':'level-core','省级期刊':'level-prov','著作收录':'level-conf','电子刊':'level-prov'};
+return m[l]||'level-prov';
+}
+function render(){
+var fy=document.getElementById('fYear').value;
+var fl=document.getElementById('fLevel').value;
+var fh=document.getElementById('fHas').value;
+var fs=document.getElementById('fSearch').value.toLowerCase();
+var filtered=PAPERS.filter(function(p){
+if(fy&&p.year!==fy)return false;
+if(fl&&p.level!==fl)return false;
+if(fh==='yes'&&!p.pdf)return false;
+if(fh==='no'&&p.pdf)return false;
+if(fs&&!p.title.toLowerCase().includes(fs)&&!p.journal.toLowerCase().includes(fs))return false;
+return true;
+});
+var html=filtered.map(function(p){
+var actions=p.pdf
+?'<a href="'+p.pdf+'" target="_blank" class="btn btn-view">📄 在线查看</a><a href="'+p.pdf+'" download class="btn btn-download">⬇ 下载PDF</a>'
+:'<span class="no-pdf">暂无原文</span>';
+return '<div class="paper-card">'
++'<div class="paper-num">'+p.num+'</div>'
++'<div><span class="paper-year">'+p.year+'</span><span class="paper-level '+levelClass(p.level)+'">'+p.level+'</span></div>'
++'<div class="paper-title">'+p.title+'</div>'
++'<div class="paper-journal">期刊/会议：'+p.journal+'</div>'
++'<div class="paper-role">署名：'+p.role+'</div>'
++'<div class="paper-actions">'+actions+'</div>'
++'</div>';
+}).join('');
+document.getElementById('paperGrid').innerHTML=html||'<div class="empty">未找到匹配的论文</div>';
+}
+function initStats(){
+var total=PAPERS.length;
+var hasPdf=PAPERS.filter(function(p){return p.pdf;}).length;
+var ssci=PAPERS.filter(function(p){return p.level==='SSCI';}).length;
+var cssci=PAPERS.filter(function(p){return p.level==='CSSCI';}).length;
+document.getElementById('statsBar').innerHTML=
+'<div class="stat-card"><div class="num">'+total+'</div><div class="label">论文总数</div></div>'
++'<div class="stat-card"><div class="num">'+hasPdf+'</div><div class="label">有原文PDF</div></div>'
++'<div class="stat-card"><div class="num">'+ssci+'</div><div class="label">SSCI论文</div></div>'
++'<div class="stat-card"><div class="num">'+cssci+'</div><div class="label">CSSCI论文</div></div>';
+var years=[];
+PAPERS.forEach(function(p){if(years.indexOf(p.year)<0)years.push(p.year);});
+years.sort().reverse();
+years.forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;document.getElementById('fYear').appendChild(o);});
+}
+document.getElementById('fYear').addEventListener('change',render);
+document.getElementById('fLevel').addEventListener('change',render);
+document.getElementById('fHas').addEventListener('change',render);
+document.getElementById('fSearch').addEventListener('input',render);
+initStats();
+render();
+</script>
+</body>
+</html>

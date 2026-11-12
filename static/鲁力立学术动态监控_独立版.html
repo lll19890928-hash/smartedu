@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鲁力立 · 学术动态监控系统</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f5f6fa;color:#2d3436;line-height:1.7;min-height:100vh}
+a{color:#4834d4;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:20px 32px;box-shadow:0 2px 12px rgba(102,126,234,.3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.header-left h1{font-size:22px;font-weight:700}
+.header-left .sub{font-size:13px;opacity:.85;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-refresh{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;transition:.2s;backdrop-filter:blur(4px);white-space:nowrap}
+.btn-refresh:hover{background:rgba(255,255,255,.32)}
+.btn-refresh:disabled{opacity:.5;cursor:not-allowed}
+.update-time{font-size:12px;opacity:.7}
+
+.section-nav{display:flex;gap:0;background:#fff;border-bottom:2px solid #e0e0e0;position:sticky;top:0;z-index:50;overflow-x:auto}
+.section-tab{flex-shrink:0;padding:14px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#636e72;border-bottom:3px solid transparent;transition:.2s;margin-bottom:-2px;white-space:nowrap}
+.section-tab:hover,.section-tab.active{color:#4834d4}
+.section-tab.active{border-bottom-color:#4834d4;font-weight:700}
+.section-tab .sicon{margin-right:4px}
+
+.sec-controls{display:flex;align-items:center;gap:10px;padding:14px 32px;background:#fff;border-bottom:1px solid #e8e8e8;flex-wrap:wrap}
+.sec-controls select,.sec-controls button{padding:7px 14px;border-radius:7px;font-size:13px;border:1px solid #d0d0d0;background:#fff;color:#2d3436;cursor:pointer;transition:.15s}
+.sec-controls select:hover,.sec-controls button:hover{border-color:#4834d4}
+.sec-controls .btn-primary{background:#4834d4;color:#fff;border-color:#4834d4}.sec-controls .btn-primary:hover{background:#3c2bb0}
+.sec-stat{font-size:13px;color:#636e72;margin-left:auto}
+
+.content{padding:24px 32px;max-width:1100px;margin:0 auto}
+.section{animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.profile-banner{background:#fff;border-radius:12px;padding:24px;margin-bottom:20px;border:1px solid #e8e8e8;display:flex;gap:20px;align-items:center}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;flex-shrink:0}
+.profile-name{font-size:22px;font-weight:700}
+.profile-meta{font-size:13px;color:#636e72;margin-top:4px;line-height:1.8}
+.profile-tags{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 10px;border-radius:10px;background:#f0f0ff;color:#4834d4;border:1px solid #e0d8ff}
+
+.block-card{background:#fff;border-radius:12px;margin-bottom:16px;border:1px solid #e8e8e8;overflow:hidden}
+.block-header{display:flex;align-items:center;gap:12px;padding:15px 20px;cursor:pointer;user-select:none}
+.block-header:hover{background:#fafbfc}
+.block-icon{font-size:18px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bicon-1{background:#f0f0ff;color:#6366f1}.bicon-2{background:#fff8e1;color:#f59e0b}
+.bicon-3{background:#e8f5e9;color:#10b981}.bicon-4{background:#e3f2fd;color:#3b82f6}
+.bicon-5{background:#fce4ec;color:#ef4444}.bicon-6{background:#f3e5f5;color:#8b5cf6}
+.block-title{font-size:16px;font-weight:600;flex:1}
+.block-badge{font-size:11px;padding:3px 10px;border-radius:10px;background:#f0f0ff;color:#4834d4;font-weight:500}
+.block-arrow{color:#b2bec3;font-size:14px;transition:.2s}
+.block-card.collapsed .block-body{display:none}
+.block-card.collapsed .block-arrow{transform:rotate(-90deg)}
+.block-body{padding:0 20px 18px}
+
+.subsection{margin-bottom:16px}
+.subsection:last-child{margin-bottom:0}
+.subsection-title{font-size:14px;font-weight:600;color:#4834d4;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #f0f0ff;display:flex;align-items:center;gap:6px}
+.sub-count{font-size:11px;color:#b2bec3;font-weight:400}
+
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 10px;background:#f8f9ff;color:#4834d4;font-weight:600;border-bottom:2px solid #e0d8ff;white-space:nowrap}
+.data-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.6}
+.data-table tr:hover td{background:#fafbff}
+.data-table td a{word-break:break-all}
+.data-table .nrow{font-size:12px;color:#b2bec3;text-align:center;width:30px}
+
+.profile-list{display:flex;flex-direction:column;gap:4px}
+.pl-item{display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid #f8f8f8;line-height:1.6}
+.pl-label{color:#636e72;min-width:80px;flex-shrink:0}
+.pl-value{color:#2d3436}
+
+.timeline{position:relative;padding-left:22px}
+.timeline::before{content:'';position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:#e0d8ff}
+.tl-item{position:relative;margin-bottom:6px;font-size:13px}
+.tl-item::before{content:'';position:absolute;left:-20px;top:7px;width:8px;height:8px;border-radius:50%;background:#4834d4;border:2px solid #fff;box-shadow:0 0 0 1px #4834d4}
+.tl-label{color:#4834d4;font-weight:600;font-size:12px;margin-bottom:1px}
+.tl-value{color:#2d3436}
+.tl-unit{color:#b2bec3;font-size:11px;margin-top:1px}
+
+.tag-cloud{display:flex;flex-wrap:wrap;gap:8px}
+.tag-cloud .tag-item{padding:5px 12px;border-radius:6px;font-size:12px;background:#f0f0ff;color:#4834d4;border:1px solid #e0d8ff}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.c-item{background:#fafbfc;border:1px solid #e8e8e8;border-radius:8px;padding:10px}
+.c-item-label{font-size:11px;color:#b2bec3;margin-bottom:2px}
+.c-item-value{font-size:13px;color:#2d3436}
+
+.news-card{background:#fff;border-radius:12px;margin-bottom:14px;border:1px solid #e8e8e8;overflow:hidden;transition:box-shadow .15s}
+.news-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.news-header{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;cursor:pointer}
+.news-date{font-size:12px;color:#636e72;white-space:nowrap;min-width:88px;text-align:right;margin-top:2px}
+.news-body{flex:1}
+.news-title{font-size:15px;font-weight:600;color:#2d3436;margin-bottom:4px}
+.news-summary{font-size:13px;color:#636e72;line-height:1.6}
+.news-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.news-cat{font-size:11px;padding:2px 9px;border-radius:11px;font-weight:500;white-space:nowrap}
+.news-src-count{font-size:12px;color:#4834d4;font-weight:500;cursor:pointer}
+.news-src-count:hover{text-decoration:underline}
+.news-sources{display:none;border-top:1px solid #f0f0f0;padding:10px 18px;background:#fafbfc}
+.news-sources.show{display:block}
+.news-full{display:none;border-top:1px solid #f0f0f0;padding:12px 18px;background:#f8f9ff}
+.news-full.show{display:block}
+.news-full-title{font-size:13px;color:#2d3436;margin-bottom:6px;line-height:1.6;word-break:break-all}
+.news-full-summary{font-size:12.5px;color:#555;line-height:1.7}
+.news-src-item{padding:5px 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:8px;font-size:13px}
+.news-src-item:last-child{border-bottom:none}
+.news-src-name{color:#4834d4;font-weight:500;white-space:nowrap;min-width:100px}
+.news-src-url{color:#636e72;font-size:12px;word-break:break-all}
+.news-src-date{color:#b2bec3;font-size:11px;margin-left:auto;white-space:nowrap}
+
+/* Category colors */
+.cat-media{background:#e8f5e9;color:#2e7d32}
+.cat-project{background:#e3f2fd;color:#1565c0}
+.cat-academic{background:#fce4ec;color:#c62828}
+.cat-honors{background:#fff3e0;color:#e65100}
+.cat-teaching{background:#f3e5f5;color:#6a1b9a}
+.cat-base{background:#e0f7fa;color:#00695c}
+.cat-conference{background:#fff9c4;color:#f57f17}
+.cat-startup{background:#e8eaf6;color:#283593}
+.cat-yimu{background:rgba(0,210,210,.12);color:#00838f}
+.cat-service{background:#fce4ec;color:#ad1457}
+
+/* YiMu stats badge */
+.yimu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.ys-card{background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #e8e8e8}
+.ys-num{font-size:28px;font-weight:700;color:#00838f}
+.ys-label{font-size:12px;color:#636e72;margin-top:4px}
+
+@media(max-width:768px){
+.header{padding:16px 20px}
+.section-tab{padding:12px 14px;font-size:13px}
+.sec-controls,.content{padding:12px 16px}
+.profile-banner{flex-direction:column;text-align:center}
+.news-header{flex-direction:column;gap:6px}.news-date{text-align:left}
+.data-table{font-size:11px}.yimu-stats{grid-template-columns:repeat(2,1fr)}
+}
+.empty{text-align:center;padding:60px 20px;color:#b2bec3;font-size:15px}
+.loading{text-align:center;padding:40px;color:#b2bec3}
+
+    .item-link{margin-left:4px;font-size:13px;text-decoration:none;opacity:0.6;transition:.15s}
+    .item-link:hover{opacity:1}
+
+/* 搜索框 */
+.search-bar{max-width:1100px;margin:0 auto;padding:12px 32px 8px}
+.search-input{width:100%;padding:10px 16px 10px 40px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:.2s;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23b2bec3' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='M21 21l-4.35-4.35'%3E%3C/path%3E%3C/svg%3E") 14px center no-repeat}
+.search-input:focus{border-color:#4834d4;box-shadow:0 0 0 3px rgba(72,52,212,.1)}
+.search-results{max-width:1100px;margin:0 auto;padding:0 32px}
+.search-results .sr-item{padding:10px 14px;margin-bottom:4px;background:#fff;border-radius:8px;border:1px solid #e8e8e8;cursor:pointer;font-size:13px;transition:.15s;display:none}
+.search-results .sr-item:hover,.search-results .sr-item.active{background:#f0f0ff;border-color:#4834d4}
+.search-results .sr-topic{font-size:11px;color:#b2bec3;margin-bottom:3px}
+.search-results .sr-match{color:#2d3436}.search-results .sr-match mark{background:#fff3cd;padding:1px 0;color:#856404;font-weight:600}
+.search-results .sr-info{font-size:12px;color:#636e72;margin-top:2px}
+.search-clear{position:absolute;right:42px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:#e0e0e0;border:none;color:#636e72;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1}
+.search-clear:hover{background:#b2bec3;color:#fff}
+.search-wrap{position:relative;max-width:1100px;margin:0 auto;padding:0 32px}
+
+/* 导出按钮 */
+.export-btns{display:inline-flex;gap:4px;margin-left:auto;flex-shrink:0}
+.export-btn{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid #d0d0d0;background:#fafbfc;color:#636e72;cursor:pointer;transition:.15s;white-space:nowrap}
+.export-btn:hover{border-color:#4834d4;color:#4834d4;background:#f0f0ff}
+.export-btn.xlsx:hover{border-color:#2e7d32;color:#2e7d32;background:#e8f5e9}
+.export-btn.docx:hover{border-color:#1565c0;color:#1565c0;background:#e3f2fd}
+.block-title-wrap{display:flex;align-items:center;gap:8px;flex:1}
+.search-none{text-align:center;padding:20px;color:#b2bec3;font-size:13px;display:none}
+
+/* ═════ 智能对话 widget ═════ */
+.chat-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(102,126,234,.45);z-index:9000;display:flex;align-items:center;justify-content:center;transition:.2s}
+.chat-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(102,126,234,.6)}
+.chat-fab .badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.chat-panel{position:fixed;bottom:90px;right:24px;width:380px;max-height:520px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.18);z-index:9001;display:flex;flex-direction:column;overflow:hidden;transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s}
+.chat-panel.open{transform:translateY(0);opacity:1;pointer-events:auto}
+.chat-panel-hd{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.chat-panel-hd h3{font-size:14px;font-weight:600;margin:0}
+.chat-panel-hd .close-btn{background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f5f6fa;min-height:200px;max-height:360px}
+.chat-msg{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;max-width:88%;word-break:break-word}
+.chat-msg.user{background:#4834d4;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-msg.ai{background:#fff;color:#2d3436;border:1px solid #e8e8e8;border-bottom-left-radius:4px;align-self:flex-start}
+.chat-msg.ai::before{content:'🤖 ';font-size:12px}
+.chat-msg .loading-dots{color:#b2bec3;font-size:13px}
+.chat-msg .loading-dots::after{content:'';animation:dotPulse 1.2s infinite}
+@keyframes dotPulse{0%{content:'.';}33%{content:'..';}66%{content:'...';}}
+.chat-input-area{display:flex;gap:8px;padding:12px 14px;border-top:1px solid #e8e8e8;flex-shrink:0}
+.chat-input-area input{flex:1;padding:9px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;transition:.15s}
+.chat-input-area input:focus{border-color:#4834d4}
+.chat-input-area button{background:#4834d4;color:#fff;border:none;padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
+.chat-input-area button:hover{background:#3c2bb0}
+.chat-input-area button:disabled{opacity:.5;cursor:not-allowed}
+
+/* 设置弹窗 */
+.chat-settings-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:9500;display:flex;align-items:center;justify-content:center}
+.chat-settings-box{background:#fff;border-radius:14px;padding:28px 24px;max-width:400px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.chat-settings-box h3{margin:0 0 8px;color:#2d3436;font-size:16px}
+.chat-settings-box p{font-size:13px;color:#636e72;line-height:1.7;margin-bottom:14px}
+.chat-settings-box input{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;margin-bottom:12px;transition:.15s}
+.chat-settings-box input:focus{border-color:#4834d4}
+.chat-settings-box .btn-row{display:flex;gap:8px;justify-content:flex-end}
+.chat-settings-box .btn-save{background:#4834d4;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:13px;cursor:pointer}
+.chat-settings-box .btn-cancel{background:#fff;color:#636e72;border:1px solid #d0d0d0;padding:8px 20px;border-radius:8px;font-size:13px;cursor:pointer}
+.chat-status{font-size:11px;color:#636e72;margin-top:6px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>📡 鲁力立 · 学术动态监控系统</h1>
+        <div class="sub">四大板块 · 覆盖时间 2011–2026 · 全网新闻链接追踪</div>
+    </div>
+    <div class="header-right">
+        <span class="update-time" id="updateTime">数据加载中…</span>
+        <button class="btn-refresh" id="btnRefresh" onclick="triggerRefresh()">🔄 一键刷新</button>
+        <button class="btn-refresh" style="background:rgba(255,255,255,.25);margin-left:6px" onclick="window.open('/standalone','_blank')">📥 下载独立版</button>
+    </div>
+</div>
+
+<!-- 刷新弹窗模态框 -->
+<div id="refreshModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:9999;justify-content:center;align-items:center;">
+  <div style="background:#fff;border-radius:16px;max-width:520px;width:90%;padding:32px 28px;box-shadow:0 8px 40px rgba(0,0,0,.18);animation:fadeIn .2s">
+    <h3 style="margin:0 0 12px;color:#2d3436;font-size:17px">🔄 数据刷新指引</h3>
+    <p style="font-size:14px;color:#636e72;line-height:1.8;margin-bottom:16px">
+      数据更新需要 AI 助手辅助完成。请按以下步骤操作：
+    </p>
+    <ol style="font-size:14px;color:#2d3436;line-height:2;padding-left:20px;margin-bottom:18px">
+      <li>打开 <b>WorkBuddy</b>（或本页底部聊天窗口）</li>
+      <li>输入：<code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:13px">更新鲁力立新闻监控数据</code></li>
+      <li>AI 将自动搜索全网最新动态并更新数据</li>
+      <li>更新完成后刷新本页即可看到最新内容</li>
+    </ol>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeRefreshModal()" style="padding:8px 18px;border-radius:8px;border:1px solid #d0d0d0;background:#fff;cursor:pointer;font-size:13px">关闭</button>
+      <button onclick="closeRefreshModal();window.open('https://workbuddy.ai','_blank')" style="padding:8px 18px;border-radius:8px;border:none;background:#4834d4;color:#fff;cursor:pointer;font-size:13px">打开 WorkBuddy</button>
+    </div>
+  </div>
+</div>
+
+<div class="search-wrap" style="padding:10px 32px 4px;background:#fff">
+    <input type="text" class="search-input" id="globalSearch" placeholder="🔍 全局检索 — 输入关键词搜索所有板块内容..."
+        oninput="doGlobalSearch(this.value)" onkeydown="handleSearchKey(event)">
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-none" id="searchNone">未找到匹配结果</div>
+</div>
+
+<div class="section-nav" id="sectionNav">
+    <div class="section-tab active" data-sec="personal" onclick="switchSection('personal')"><span class="sicon">📋</span>个人全貌</div>
+    <div class="section-tab" data-sec="yimu" onclick="switchSection('yimu')"><span class="sicon">🎬</span>壹幕工作室</div>
+    <div class="section-tab" data-sec="metaverse" onclick="switchSection('metaverse')"><span class="sicon">🌐</span>教育元宇宙未来课堂</div>
+    <div class="section-tab" data-sec="base" onclick="switchSection('base')"><span class="sicon">🏫</span>智慧教育产教基地</div>
+    <div class="section-tab" data-sec="lulili" onclick="switchSection('lulili')"><span class="sicon">👤</span>我的动态</div>
+    <div class="section-tab" data-sec="related" onclick="switchSection('related')"><span class="sicon">🔗</span>关联机构</div>
+    <div class="section-tab" data-sec="honors" onclick="switchSection('honors')"><span class="sicon">🏆</span>荣誉成果</div>
+</div>
+
+<div id="controlsArea"></div>
+<div class="content" id="contentArea"><div class="loading">⏳ 加载中...</div></div>
+
+<script>
+
+// ════ 全局错误捕获（帮助定位 Safari 错误）════
+window.addEventListener('error',function(e){
+  var msg='JS错误: '+(e.message||'')+' | 位置: '+(e.filename||'')+':'+(e.lineno||'')+':'+(e.colno||'');
+  var div=document.getElementById('globalError');
+  if(!div){div=document.createElement('div');div.id='globalError';document.body.prepend(div);}
+  div.style.cssText='position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;cursor:pointer;word-break:break-all;';
+  div.textContent=msg;
+  div.onclick=function(){div.style.display='none';};
+  console.error('Global JS Error:',e);
+});
+// ══════════════════════════════════════════════
+let ALL_DATA={},currentSection='personal';
+var EMBEDDED_DATA={"profile":{"results":[{"id":"block-identity","title":"一、个人信息及教育背景","category":"基本信息","color":"#6366f1","icon":"person","subsections":[{"title":"1.1 基本信息","type":"card","items":[{"label":"姓名","value":"鲁力立","link":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp","link_baike":"https://baike.baidu.com/item/%E9%B2%81%E5%8A%9B%E7%AB%8B/49789866"},{"label":"出生年代","value":"85后"},{"label":"MBTI","value":"ISTJ"},{"label":"政治面貌","value":"中共党员"}]},{"title":"1.2 现任职务与身份","type":"card","items":[{"label":"单位","value":"华东师范大学 教育学部 教育信息技术学系","link":"http://www.deit.ecnu.edu.cn/84/94/c26169a689300/page.htm"},{"label":"职称","value":"高级工程师（副高）"},{"label":"主任助理","value":"上海数字化教育装备工程技术研究中心 科技转化主任助理"},{"label":"智库专家","value":"国家大学科技园概念验证中心 智库专家","link":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"},{"label":"产教基地负责人","value":"华东师范大学智慧教育产教基地 负责人","link":"http://www.deit.ecnu.edu.cn/55/9a/c26200a742810/page.htm"},{"label":"实验室负责人","value":"数字媒体综合实验室/校融媒体中心 负责人","link":"https://epaper.gmw.cn/gmrb/html/2024-10/31/nw.D110000gmrb_20241031_4-01.htm"},{"label":"党建职务","value":"教工支部宣传委员；组织申报本支部获批书记培优支部"},{"label":"社会兼职1","value":"上海市普陀区夏为光华科技智教研究院 理事"},{"label":"社会兼职2","value":"壹生万幕（上海）教育科技有限公司 创始人"},{"label":"社会兼职3","value":"国家级混合式教学赛事指导专家"},{"label":"社会兼职4","value":"国际实用射击联盟（IPSC）和国际手枪防卫协会（IDPA）认证枪手"},{"label":"当前重心","value":"专注技术产业转化，不直接带学生；团队壹幕工作室每年9月招新"},{"label":"知识产权储备","value":"拥有30+项软件著作权、著作权和专利，以每年10-20个速度推进"},{"label":"科技成果转化企业","value":"壹生万幕（上海）教育科技有限公司 创始人，曾获《光明日报》头版报道"}]},{"title":"1.3 教育背景","type":"card","items":[{"label":"博士","value":"华东师范大学 教育博士（Ed.D.），教育领导与管理方向"},{"label":"硕士","value":"中国传媒大学 电视学院 广播电视艺术学 硕士"},{"label":"本科","value":"中国传媒大学 汉语言文学 + 广播电视编导 双学位本科"}]},{"title":"1.4 社会兼职与学术服务","type":"card","items":[{"label":"CSSCI刊物审稿人","value":"长期担任CSSCI来源期刊审稿人"},{"label":"中国高等院校影视学会","value":"会员"},{"label":"中国教育学会中小学信息技术教育专业委员会","value":"秘书处成员"}]},{"title":"1.5 研究领域","type":"tags","items":[{"label":"教育元宇宙","value":"教育元宇宙未来课堂、VR/AR教育应用","link":"https://epaper.gmw.cn/gmrb/html/2024-10/31/nw.D110000gmrb_20241031_4-01.htm"},{"label":"教育影视","value":"教育影视创作与实践、纪录片创作"},{"label":"数字媒体教育","value":"数字媒体技术教学、在线课程建设","link":"https://epaper.gmw.cn/gmrb/html/2024-10/31/nw.D110000gmrb_20241031_4-01.htm"},{"label":"AI教育","value":"生成式AI驱动教育新生态、智慧教育"}]},{"title":"1.6 斜杠身份","type":"card","items":[{"label":"起点中文网","value":"签约作家"},{"label":"小红书","value":"创作者"},{"label":"广告","value":"十八线广告模特"},{"label":"音乐","value":"不入流音乐人"},{"label":"导演","value":"导演、舞台美术设计师"},{"label":"射击","value":"国际实用射击联盟IPSC和国际手枪防卫协会IDPA认证枪手，从拔枪到击倒2名目标仅2.4秒"}]}]},{"id":"block-honors","title":"二、历年获奖荣誉（个人获奖）","category":"荣誉奖项","color":"#f59e0b","icon":"trophy","subsections":[{"title":"2.1 个人教学科研获奖（按时间倒序）","type":"timeline","items":[{"label":"2025.10","value":"“2025数字化终身学习国际会议”智慧学习生态系统优秀案例奖","unit":"联合国教科文组织 & 上海开放大学","link":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page.htm"},{"label":"2025","value":"人工智能助力教育教学创新实践入选案例","unit":"上海开放远程教育工程技术研究中心 & 上海智慧城市发展研究院"},{"label":"2023.10","value":"上海高等学校一流本科课程（联合负责人）","unit":"上海市教育委员会"},{"label":"2023","value":"实验技术研究项目优秀奖","unit":"华东师范大学"},{"label":"2022.07","value":"上海高校重点课程（联合负责人）","unit":"上海市教育委员会"},{"label":"2022.04","value":"2021年华东师范大学教学成果奖二等奖（排名第6）","unit":"华东师范大学"},{"label":"2020.12","value":"第二届全国高校混合式教学设计创新大赛特等奖（全国仅5席，华东师大至今唯一）","unit":"全国高校混合式教学设计创新大赛组委会","link":"http://www.cftd.ecnu.edu.cn/3b/62/c8348a342882/page.htm"},{"label":"2020.06","value":"华东师范大学第十三届青年教师教学比赛一等奖","unit":"华东师范大学","link":"https://ed.ecnu.edu.cn/b2/d2/c45902a635602/page.htm"},{"label":"2020.04","value":"第二届课程思政教学设计研讨与征集活动二等奖","unit":"华东师范大学"},{"label":"2019.07","value":"上海高校网络教育优秀作品二等奖","unit":"上海市教卫工作党委、市教委"},{"label":"2018.03","value":"上海市教育发展基金会申万宏源奖教金","unit":"上海市教育发展基金会"},{"label":"2017.12","value":"华东师范大学本科教学年度贡献奖","unit":"华东师范大学"},{"label":"2017.12","value":"学生思想政治教育工作三年'水晶奖'","unit":"华东师范大学"},{"label":"2016.06","value":"第一届'汇创青春'上海大学生文化创意作品优秀指导教师","unit":"中共上海市教育卫生工作委员会、上海市教育委员会"},{"label":"2016","value":"华东师范大学年度考核优秀","unit":"华东师范大学"},{"label":"2015","value":"华东师范大学'发现师大'摄影大赛二等奖","unit":"华东师范大学"}]},{"title":"2.2 赛事优秀指导教师（按时间倒序）","type":"timeline","items":[{"label":"2022.05","value":"首届'致敬中华优秀传统文化'项目学习活动优秀指导老师奖","unit":"北师大中国教育创新研究院等"},{"label":"2021.08","value":"未来设计师·第九届全国高校数字艺术设计大赛上海赛区优秀指导教师奖","unit":"上海市教育委员会"},{"label":"2021.05","value":"2019-2021年上海市大学生计算机应用能力大赛优秀指导教师奖","unit":"上海市教育委员会"},{"label":"2021.01","value":"华东师范大学首届创新创业优秀指导教师","unit":"华东师范大学"},{"label":"2020.12","value":"2020年iTeach全国大学生数字化教育应用创新大赛优秀指导老师","unit":"中国教育信息化产业创新平台等"},{"label":"2020.12","value":"2020年（第13届）中国大学生计算机设计大赛一星级优秀指导教师","unit":"中国大学生计算机设计大赛组织委员会"},{"label":"2020.10","value":"2020年华东师范大学主题社会实践优秀指导教师奖","unit":"共青团华东师范大学委员会"},{"label":"2020.09","value":"第八届全国高校数字艺术设计大赛优秀指导教师奖","unit":"工业和信息化部人才交流中心"},{"label":"2019.12","value":"第三届iTeach全国大学生数字化教育应用创新大赛优秀指导教师","unit":"教育部高等学校教育技术专业教学指导分委员会"},{"label":"2019.12","value":"华东师范大学第五届本科生创新创业训练学术论坛优秀指导教师","unit":"华东师范大学教务处"},{"label":"2019.11","value":"首届全国大学生创意融媒体作品大赛优秀指导教师奖","unit":"全国大学生创意融媒体作品大赛组委会"},{"label":"2018.12","value":"2018年'知行杯'上海市大学生社会实践项目大赛优秀指导教师","unit":"中共上海市宣传部等"},{"label":"2018.12","value":"2018年华东师范大学大学生主题社会实践活动优秀指导教师","unit":"共青团华东师范大学委员会"},{"label":"2016.06","value":"第一届'汇创青春'上海大学生文化创意作品优秀指导教师","unit":"中共上海市教育卫生工作委员会、上海市教育委员会","link":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"}]}]},{"id":"block-academic","title":"三、学术成果","category":"学术成果","color":"#22c55e","icon":"book","subsections":[{"title":"3.1 发表论文（按时间倒序，GB/T 7714格式）","type":"table","columns":["序号","论文信息（GB/T 7714引用格式）","期刊/会议","年份","级别","署名"],"rows":[["[1]","WANG Yilei, LU Lili, MA Yuanqian, et al. Virtual reality in physiological education: Influence of learning modality and learner characteristics on learning outcomes[J]. Acta Psychologica, 2026, 267.","Acta Psychologica","2026","SSCI","共同作者"],["[2]","LU Lili, ZHAO Y, MA P, et al. Opportunities and Challenges of Educational Evaluation in the Metaverse[J]. Journal of Contemporary Educational Research, 2025, 9(7): 226-231.","JCER","2025","国际期刊","第一作者"],["[3]","赵衍, 鲁力立（通讯作者）. 基于深度学习的到课率统计系统设计与实现[J]. 现代教育技术, 2024, 34(02): 108-117.","现代教育技术","2024","CSSCI","通讯作者"],["[4]","鲁力立, 陆怡婕, 许鑫. 寓教于乐：元宇宙视角下口头文学类非遗的科普VR设计[J]. 图书馆论坛, 2023, 43(02): 141-149.","图书馆论坛","2023","CSSCI","第一作者"],["[5]","LU Lili, MENG Zinan. Design and Research of Educational Teaching Service System Based on Meta-universe Environment[C]. EIMT 2023: Proceedings of the 2023 2nd International Conference on Educational Innovation and Multimedia Technology, 2023.","EIMT 2023","2023","国际会议B类","第一作者"],["[6]","陆怡婕, 吴诚薇, 鲁力立（通讯作者）, 等. 针对口头文学类非遗'沪谚'的在线数字游戏设计[C]. 第27届全球华人计算机教育应用大会(GCCCE 2023)论文集, 2023: 234-244.","GCCCE 2023","2023","国际会议B类","通讯作者"],["[7]","鲁力立. 在线视频教学模式助力农村基础教育研究[J]. 中国果树, 2022, (01): 112-113.","中国果树","2022","北大核心","第一作者"],["[8]","鲁力立, 任子佳, 於津因. 新时代学校美育背景下的高中影视鉴赏课程设计与应用[J]. 艺术教育, 2022, (01): 137-140.","艺术教育","2022","省级期刊","第一作者"],["[9]","鲁力立, 许鑫. 从'混合'到'混沌'：元宇宙视角下的未来教学模式探讨——以华东师范大学云展厅策展课程为例[J]. 图书馆论坛, 2022, 42(01): 53-61.","图书馆论坛","2022","CSSCI","第一作者"],["[10]","鲁力立. 移动互联网模式下针对'00后'大学生的在线实时教学方法的探讨[J]. 当代教育实践与教学研究（电子刊）, 2021(4): 16-17.","当代教育实践与教学研究","2021","电子刊","第一作者"],["[11]","王巍, 鲁力立（通讯作者）, 吴永和. 高校案例教学虚拟社区建设理念及方案探究——以华东师范大学教育信息技术学系本科生优秀案例资源库为例[J]. 中国教育技术装备, 2017(18): 6-8, 13.","中国教育技术装备","2017","省级期刊","通讯作者"],["[12]","鲁力立, 谭文静. 关于我国预防医学类电视公益广告的现状调查与对策分析[J]. 视听, 2017(10): 183-185.","视听","2017","省级期刊","第一作者"],["[13]","鲁力立. 基于视听语言的中西方教育主题纪录片比较研究[C]//王建国, 胡智锋. 图景与前景——'互联网+'时代的中国影视. 北京: 中国传媒大学出版社, 2017.","中国传媒大学出版社","2017","著作收录","第一作者"],["[14]","鲁力立, 张婷婷. 基于视听语言的中西方教育主题纪录片比较研究[C]. 中国高等院校影视学会第十六届年会暨第九届中国影视高层论坛论文集, 2016: 201-209.","中国高校影视学会年会","2016","会议论文","第一作者"],["[15]","鲁力立. 教育影视作品在高校教学实践中的应用研究[J]. 西部广播电视, 2015(24): 30.","西部广播电视","2015","省级期刊","第一作者"]]},{"title":"3.2 著作与教材","type":"list","items":[{"label":"教材（主编）","value":"《教育影视基础》，'十四五'规划教材，中国传媒大学出版社","link":"https://www.yuntaigo.com/book.action?recordid=bmtvbm9iemM5Nzg3NTY1NzMyMjE4"},{"label":"教材（参编）","value":"《艺术·影视》九年级（下）教师参考用书，教育科学出版社"},{"label":"专著","value":"《重塑数字媒体：全流程AIGC人机协作实战指南》，上海交通大学出版社"},{"label":"专著","value":"《混合式教学：从新手到专家》，中国传媒大学出版社"},{"label":"著作收录","value":"鲁力立. 基于视听语言的中西方教育主题纪录片比较研究[M]//王建国, 胡智锋. 图景与前景——'互联网+'时代的中国影视. 北京: 中国传媒大学出版社, 2017."},{"label":"数字出版物","value":"5套数字课程资源：《圆脸妹妹的C++课堂》《情景速学上海话》《摄像大师》《后期软件实用操作指南》《3D打印知多少》（2018年），支持混合式教学"},{"label":"课程思政著书","value":"参与课程思政著书项目，2020年"}]},{"title":"3.3 软件著作权","type":"table","columns":["序号","软件名称","登记号","登记年份","类型"],"rows":[["1","针对小学低年级的汉字字形演变在线学习系统","2021SR1159314","","2021年8月5日","周昕祺","10184500431"],["2","针对初中生的反网络暴力教育在线学习交互系统","2021SR1156620","","2021年8月5日","林易","10184500429"],["3","针对在沪大学生沪语沪谚学习：上海文化感受的在线学习交互系统","2021SR1160441","","2021年8月6日","陆怡婕","10184500237"],["4","针对教育专业本科生自我发展的在线学习交互系统","2021SR0737123","","2021年5月21日","宛宁静","10184500515"],["5","基于虚拟仿真摄像机的摄像技艺教学系统[简称：摄像大师]V1.0","2023SR0288166","10875337","2023年2月28日","王文婷","10204507016"],["6","\"传统\"带你玩游戏——\"双减\"背景下针对小学生的中华传统游戏科普交互系统","2023SR0294971","10882142","2023年3月2日","杜常晴","10204507006"],["7","\"四史\"学习背景下，面向大学生的中国教育技术发展史科普交互系统[简称：教技时光机]","2023SR0294857","10882028","2023年3月2日","邓宇菲","10204500071"],["8","针对小学低年级的汉字字形演变移动端学习交互系统[简称：识字知源]","2023SR0294970","10882141","2023年3月3日","彭佳","10194500004"],["9","小花狮启智化学——中考化学实验互动学习平台","2024SR1081809","13485682","2024年7月30日","曹钰婷","10214507009"],["10","小花狮游世界——面向跨学科案例分析解题模型的交互学习系统","2024SR0629566","13033439","2024年7月30日","窦雨萧","10214507012"],["11","勇攀化学高峰V1.0——面向中考化学实验操作考试及化学中考实验题的交互学习系统","2024SR0382294","12785666","2024年7月30日","肖经晶","10214507007"],["12","消杀志愿者V1.0——针对疫情防护知识的微课程交互学习系统","2024SR0381940","12786314","2024年3月12日","张千羽","10224507032"],["13","元宇宙环境下针对中小学生的跨学科思政课程","国作登字-2025-A-00103332","","2025","",""],["14","影视教学课程管理系统V1.0","2019SR0053981","","2018","",""],["15","影视后期剪辑软件V1.0","2019SR0056770","","2018","",""],["16","摄像摄影图片处理系统V1.0","2019SR0056107","","2018","",""]]},{"title":"3.4 专利","type":"list","items":[{"label":"发明专利","value":"教育元宇宙未来课堂（2022年申请，入选2022年WAIC产业元宇宙创新应用案例集）"},{"label":"发明专利（申请中）","value":"语音交互方法、系统、教育辅助管理平台及设备（2024年申请）"},{"label":"新型发明专利（申请中）","value":"1项新型发明专利（2022年申请）"}],"rows":[["1","虚拟现实融合教学空间的交互控制系统","发明专利（申请中）","",""]]},{"title":"3.5 参加学术会议","type":"list","items":[{"label":"2026","value":"上海师范大学数字教育学术论坛"},{"label":"2025.12","value":"第七届中国教育创新成果公益博览会（珠海），主题报告'面向基础教育的教育元宇宙未来课堂'"},{"label":"2025.10","value":"'2025数字化终身学习：创新·智能·融合'国际会议（上海开放大学），主题报告'面向基础教育的教育元宇宙未来课堂'"},{"label":"2023","value":"2023 EIMT国际会议，发表论文"},{"label":"2023","value":"第27届全球华人计算机教育应用大会（GCCCE 2023），发表论文","link":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"},{"label":"2020","value":"中国高等院校影视学会年会（成都），专题报告'上海市高中影视素养培育课程建设'"},{"label":"2019","value":"第十届中国国际新媒体短片节及新青年影像主题论坛"},{"label":"2017","value":"中国高等院校影视学会第十届中国影视高层论坛（苏州），论文发言'翻转课堂模式下高校影视教学中后期软件教学视频的设计应用'"},{"label":"2016","value":"中国高校影视学会第十六届年会暨第九届中国影视高层论坛，论文发言'基于视听语言的中外教育主题纪录片比较探析'"}]},{"title":"3.6 主办/承办会议","type":"list","items":[{"label":"2025.08","value":"承办并主持'智创赛道·育见未来——生成式AI驱动教育新生态'研讨会暨静安区数字化好学校案例分享及产教融合专题论坛"},{"label":"2016","value":"系三十周年系庆活动，负责组织"}]}]},{"id":"block-service","title":"四、服务活动","category":"服务活动","color":"#3b82f6","icon":"build","subsections":[{"title":"4.1 服务学校重大工程","type":"list","items":[{"label":"孟刘馆","value":"数字技术总设计师，首个虚拟现实展馆（300万经费），校庆70周年献礼。创新设计虚实交互展板、CAVE沉浸电影。","link":"https://sh.people.com.cn/n2/2021/1011/c134768-34950322.html"},{"label":"数字媒体综合实验中心/校融媒体中心","value":"负责人，教育部项目450万，含大型演播室。历经三轮改造（2017-2023年），升级为教育元宇宙中心。2021年联合党委宣传部落成校融媒体中心，支撑教改获国家级特等奖在内100+成果。","link":"https://www.shobserver.com/sgh/detail?id=1452390"},{"label":"元宇宙未来学习空间","value":"担任学校'数智跃升'计划中北图书馆二楼「元宇宙未来学习空间」总设计师（250万经费），2025年4月落成，6月5日正式启用。配备VR/AR/MR设备及小花狮数智学伴机器人。接待全国十多个省市参观交流10余次，试点校常规化授课覆盖学生超4000人次。","link":"https://www.sohu.com/a/968799353_121106832"},{"label":"智慧教育产教基地","value":"华东师范大学智慧教育产教基地建设，担任负责人。落成全国首个'教育出题×高校解题×企业答题'协同平台。","link":"http://www.ce.cn/xwzx/gnsz/gdxw/202604/t20260420_2917151.shtml"}]},{"title":"4.2 支撑重大科研课题（场地/技术/设备服务，无署名）","type":"list","items":[{"label":"支撑国家级教学成果奖（2项）","value":"为李政涛教授团队《生命·实践》教育学视域下学科教学育人价值的深度开发与实践转化项目（一等奖）、许鑫教授团队《上海MBA教学案例共建共享共荣创新实践》项目（二等奖）提供场地/设备/技术服务支撑"},{"label":"支撑上海市教学成果奖（2项）","value":"为李政涛教授团队（特等奖）、许鑫教授团队（一等奖）提供场地/设备/技术服务支撑"},{"label":"支撑国社科重大项目","value":"2019年度国家社会科学基金重大项目'人工智能促进未来教育发展研究'（19ZDA364），提供设备/数据采集/技术服务"},{"label":"支撑国社科重点项目","value":"2023年国家社科基金重点项目'数智时代公共文化机构内容生产模式与能力测评研究'（23ATQ003），提供设备/技术服务"},{"label":"支撑SSCI/CSSCI论文10+项","value":"Liu, Y., Deng, L., Lin, L., & Gu, X. (2021). Patterns of triggers for on-task and off-task behaviors. Interactive Learning Environments (SSCI Q1) 等多篇论文"},{"label":"支撑WAIC & 教博会","value":"2022年WAIC发布教育元宇宙未来课堂项目，入选WAIC产业元宇宙创新案例集；2022年上海教博会数字化转型应用标杆案例（全校共5项）","link":"https://www.sohu.com/a/822495695_121118939"}]},{"title":"4.3 社会培训与讲座","type":"table","columns":["序号","时间","服务学校/企业","培训内容"],"rows":[["1","2026年5月19日","南京师范大学环境学院","作「AI赋能一流本科教育」专题讲座，聚焦教·学·研·用四大场景 [详情](https://env.njnu.edu.cn/info/1028/15433.htm)"],["2","2026年5月9日","上海市浦东新区观澜小学","主讲《AI时代，我们要如何教学？》，AI教学应用、4W公式/SPACE原则、AI幻觉防范 [详情](https://mp.weixin.qq.com/s/fEu_1QachONJkVM__nZWYA)"],["3","2026年5月8日","上海市吴迅中学","主讲《AI时代的教师核心素养——教育智能体的设计和搭建》，AI智能体三大核心要素 [详情](https://mp.weixin.qq.com/s/AjZc65v3gGO3LmcyskBWCg)"],["4","2026年4-6月","浦东新区社区学院","青年教师专题培训，围绕数字化教学工具、混合式教学设计、教育元宇宙场景三大模块 [详情](https://mp.weixin.qq.com/s/iM1aVf1TimrgqZVw7YxZDA)"],["5","2026年3月17日","上海市吴迅中学","主讲《AI时代教师的核心素养》，四大维度：精准提问、顶层设计、人机协作、意义建构 [详情](https://mp.weixin.qq.com/s/gqDfVK846aG3ZtZ_eVI9iA)"],["6","2026年2月27日","上海市吴迅中学","特色通识课《AI时代，我们应当如何教学？》，AI赋能教学资源革新与课堂模式变革 [详情](https://mp.weixin.qq.com/s/WuemeP4ZdUDxVJT1HVFJTg)"],["7","2026年4-6月","上海市吴迅中学","开展AI教育专题讲座，结合人工智能教育规划咨询服务，为中学教师提供AI赋能教学实践指导"],["8","2025年10月31日","高新一小教育集团","2025-2026学年度中层干部培训（总第13期），演示AI赋能教育创新应用 [详情](https://mp.weixin.qq.com/s?__biz=MzI0Nzk0ODEwNQ==&mid=2247571883&idx=5&sn=bfc8ed0084213e789f290b445dca6379)"],["9","2025年10月24日","上海第二工业大学附属龚路中学","主讲《AI时代，我们要如何教学？》，教育三大变革（效能革命、范式重构、人机协同） [详情](https://mp.weixin.qq.com/s/DuDnpznsMBsLX9TNRcHLWg)"],["10","2025年7月3-4日","乌鲁木齐市教育研究中心（华东师大暑期学校）","主讲《AI时代，我要如何教学》，AI时代教师四大核心素养，现场实操 [详情](https://mp.weixin.qq.com/s/mxO2tgAsgLOFVTlNBXhjZA)"],["11","2025年","多所学校（12次）","开展人工智能教师培训共12次 [详情](https://ercdee.ecnu.edu.cn/7f/3e/c16571a687934/page.htm)"],["12","长期","全国中小学影视教育项目","参与全国中小学影视教育师资人才培养项目讲座 [详情](https://wenyi.gmw.cn/2019-07/22/content_33018039.htm)"],["13","长期","多所高校（北京/华东/华南）","高校混合式教学大赛讲座 [详情](http://www.cftd.ecnu.edu.cn/3b/62/c8348a342882/page.htm)"],["14","长期","多所高校","高校一流课程培育讲座"],["15","长期","上海市吴迅中学","影视社团课程建设与影视科普讲座（2025年横向项目）"],["16","2024年10月28日","沈阳科技学院","新教师研修班，主讲教学设计流程、教学方法与技巧、课堂管理与组织 [详情](https://jsfz.syist.edu.cn/index/Article/details/id/325.html)"],["17","2024年8月12日","鑫考股份教育生态峰会","主题分享《AI时代教育的变与守》 [详情](https://mp.weixin.qq.com/s/83HY5avXyJD55nEOaDiZ5Q)"],["18","2024年6月19日","闵行区教院友中","高一年级创客大讲堂，主题「科技赋能时代 AI创新未来」 [详情](https://mp.weixin.qq.com/s?__biz=MzU4OTQ3MDcyOA==&mid=2247492810&idx=1&sn=471a000b9e8b3a3a89592310fa6a2e27)"],["19","长期","中国民航学院","信息化能力培训讲座"],["20","长期","山东省滕州市","为中小学名师高研班授课"],["21","长期","高新一小","AI教育讲座"],["22","长期","上海市静安区","数字化好学校案例分享与产教融合推动 [详情](https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page.htm)"],["23","长期","职业教育领域","信息化教学能力和技术指导"]]},{"title":"4.4 工会活动与个人爱好","type":"list","items":[{"label":"工会活动","value":"2019年教育学部朗诵比赛二等奖；代表学校参加上海女教师主题诵读大赛领诵；参加学部国庆歌会和迎新晚会朗诵"},{"label":"数字化党建","value":"教工支部宣传委员，组织策划全年民主生活活动，侧重党风党纪廉政教育，组织申报本支部获批书记培优支部（2025年）"},{"label":"四史微党课","value":"2020年制作四史微党课视频"},{"label":"课程思政","value":"参加课程思政教学设计研讨与征集活动；参加'学科教学育人与课程思政'专题网络培训"},{"label":"庆祝改革开放40周年","value":"作为领诵代表华东师范大学参加上海市教委晚会，在上海教育电视台播出","link":"https://www.sohu.com/a/260681514_100191015"},{"label":"校工会","value":"2018年度校工会积极分子"}]}]},{"id":"block-projects","title":"五、科研项目","category":"项目建设","color":"#ef4444","icon":"rocket","subsections":[{"title":"5.1 纵向项目——主持","type":"table","columns":["时间","项目名称","项目编号/经费号/合同号","立项单位","经费","角色"],"rows":[["2024","数智时代上海文化新业态与新消费研究","—","上海市哲社科学规划办公室","—","主持"],["2024","国家智能社会治理实验特色基地课题","—","国家智能社会治理实验基地","—","主持"],["2020","演播室三轮改造：从电化教育到教育元宇宙","—","教育部","398万元","主持"],["2020","校精品教材建设专项","—","华东师范大学","—","主持"],["2018","《辅助摄像实验课程的全媒体资源建设》","—","设备处实验技术研究","—","主持"],["2018","《影视编导》大夏学堂优质示范课程建设","—","华东师范大学","—","主持"],["2017","高校影视教学实践中'工作室'模式探究","—","教务处教学改革与研究项目","—","主持"],["2016","基于课程的影视软件教学视频库","—","教务处教学改革项目","—","主持"],["2016","本科优秀教学资源案例库建设项目","—","教务处教学项目","—","主持"],["2015","基于问题解决的教学技术应用微视频库建设","—","教务处教学改革与研究项目","—","主持"],["2015","教育创客文化空间建设","—","党委宣传部","—","主持"],["2015","影视编导大夏学堂在线课程建设","—","教务处教学项目","—","主持"],["2019","综合实验项目申报与建设","—","教务处/学部","—","主持"],["2020","四史微党课制作项目","—","华东师范大学","—","主持"],["2016-2025","上海高校智库项目（3项，涉及教育元宇宙和数字文化）","—","上海市教委","—","主持"],["2016-2025","校实验技术项目（2项，其中1项优秀）","—","华东师范大学设备处","—","主持"],["2016-2025","校教改项目（3项）","—","华东师范大学教务处","—","主持"],["2022","上海高中影视教育课程建构与数字教学资源开发","C2022273","上海市教育科学研究项目","5万（2025年已结项）","主持"]]},{"title":"5.2 纵向项目——参与","type":"table","columns":["时间","项目名称","项目编号/经费号/合同号","立项单位","经费","角色"],"rows":[["2024","校级青年跨学科创新团队（元宇宙方向）","—","华东师范大学","—","参与"],["2020","课程思政著书项目","—","华东师范大学","—","参与/署名"]]},{"title":"5.3 横向项目——主持（按年份拆分，含完整项目信息）","type":"table","columns":["时间","项目名称","项目编号","经费号","委托单位","经费(万)","状态","角色"],"rows":[["2026","上海市吴迅中学影视社团课程建设服务","321-26141","14108-412321-26141","上海市吴迅中学","8.00","在研","主持"],["2026","上海市吴迅中学人工智能教育规划咨询服务","321-26136","14108-412321-26136","上海市吴迅中学","1.35","在研","主持"],["2026","上海市浦东新区建平康梧中学影视社团课程建设服务","321-26135","14108-412321-26135","上海市浦东新区建平康梧中学","2.00","在研","主持"],["2025","吴迅中学影视社团课程建设服务","321-25119","14108-412321-25119","上海市吴迅中学","8.96","在研","主持"],["2024","元宇宙环境下针对中学生的思政主题跨学科课程服务","321-24625","14108-412321-24625","横向委托","8.00","在研","主持"],["2024","针对中学生的心理健康科普动画片创作","321-24558","14108-412321-24558","横向委托","9.7826","结题","主持"],["2023","上海初中跨学科教育元宇宙课件教学设计","321-23314","14108-412321-23314","横向委托","8.30","结题","主持"],["2022","长三角科学家科学传播行为与效果评估调研服务委托项目","321-22402","14108-412321-22402","横向委托","3.20","结题","主持"],["2022","针对中学生的影视教育课程建设及相关服务","321-22351","14108-412321-22351","横向委托","10.70","结题","主持"],["2021","面向中学生的\"E法庭\"数字交互教学系统设计与开发","321-21466","14108-412321-21466","横向委托","24.2525","结题","主持"],["2021","针对中学生的影视教育课程建设及相关服务","321-21463","14108-412321-21463","横向委托","13.56","结题","主持"],["2019","针对初中生的影视素养培育课程的建设","321-19529","14108-412321-19529","横向委托","2.98","结题","主持"],["2018","社会组织服务中心建设宣贯片创作技术服务合同","311-18183","14108-412311-18183","事业单位","3.55","结题","主持"]]},{"title":"5.4 学生培养成果","type":"list","items":[{"label":"本科毕业论文指导","value":"累计指导本科生毕业论文26篇（2011级—2018级各年度）"},{"label":"双创项目指导","value":"累计指导国创11项、市创4项、校创18项（详见「壹幕工作室」标签页）"},{"label":"指导学生获奖统计","value":"国家级30余项、省部级64余项、校级16项（详见「壹幕工作室」标签页）"},{"label":"赛事优秀指导教师","value":"累计20+次全国赛事优秀指导教师（如全国高校数字艺术设计大赛优秀指导教师等）"},{"label":"2025年指导竞赛","value":"2025年（第十七届）上海市大学生计算机应用能力大赛 2个三等奖；2025年第十三届未来设计师全国高校数字艺术设计大赛 2个三等奖；第七届上海大学生网络文化节 1个二等奖"},{"label":"社会实践指导","value":"指导寒暑假社会实践项目多项，获校一等奖2项、二等奖2项、优秀项目/个人多项"}]}]}],"stats":{"total_blocks":5,"total_subsections":22,"total_items":98,"total_table_rows":33}},"lulili":{"topic":{"id":"lulili","name":"鲁力立个人动态","icon":"📰","color":"#667eea","filter_categories":["项目里程碑","媒体报道","学术成果","荣誉奖项","教学活动","基地建设","学术会议","创业动态","壹幕工作室"]},"results":[{"id":"evt-paper-ssci2026","date":"2026-05-25","title":"WANG Yilei, LU Lili*, MA Yuanqian, et al.","title_full":"WANG Yilei, LU Lili*, MA Yuanqian, et al. Virtual reality in physiological education: Influence of learning modality and learner characteristics on learning outcomes. Acta Psychologica, 2026, 267: 107111. (SSCI)","summary":"2026年5月，鲁力立作为通讯作者/合作者的SSCI论文被国际知名心理学期刊Acta Psychologica（Elsevier出版，SSCI收录）正式发表。该研究探讨VR沉浸式学习在生理学教育中的应用，揭示了学习模式与学习者特征对学习成果的交互影响。生物通等学术媒体进行了中文报道。","category":"学术成果","sources":[{"name":"ScienceDirect (DOI全文)","url":"https://www.sciencedirect.com/science/article/pii/S0001691826009121","date":"2026-05-25"},{"name":"BookSci学术","url":"https://www.booksci.cn/literature/148013101.htm","date":"2026-05-25"},{"name":"生物通（中文报道）","url":"https://cdn.ebiotrade.com/newsf/2026-5/20260528084348172.htm","date":"2026-05-28"}],"source_count":3,"type":"event_cluster"},{"id":"evt-njnu-lecture2026","date":"2026-05-19","title":"鲁力立受邀赴南京师范大学环境学院，作「AI赋能一流本科教育」专题讲座，","title_full":"鲁力立受邀赴南京师范大学环境学院，作「AI赋能一流本科教育」专题讲座，聚焦教·学·研·用四大场景","summary":"2026年5月19日，鲁力立受邀赴南京师范大学环境学院，作「AI赋能一流本科教育」专题讲座。报告聚焦「教、学、研、用」四大核心场景，提出AI正在推动教育发生深刻变革。针对师生普遍关注的AI幻觉风险，鲁力立强调需构建「提问沟通力、人机协作力、批判思维力」三大核心能力，在AI时代重塑师生数字素养体系。这是鲁力立将华东师大智慧教育经验向兄弟高校输出的重要实践。","category":"培训","sources":[{"name":"南京师范大学环境学院官网","url":"https://env.njnu.edu.cn/info/1028/15433.htm","date":"2026-05-19"}],"source_count":1,"type":"event_cluster"},{"id":"evt-8f541428","date":"2026-05-09","title":"拥抱AI变革，探寻教学新径——观澜小学信息化培训","title_full":"拥抱AI变革，探寻教学新径——观澜小学信息化培训","summary":"主讲《AI时代，我们要如何教学？》，围绕三大核心板块：①解锁AI技术密码（推理/通用大模型特点、4W公式、SPACE提示词原则）；②警惕AI“幻觉”现象，教师应做好把关人；③携手AI迈向教育新征程，积极拥抱人机协同。","category":"培训","sources":[{"name":"上海市浦东新区观澜小学（微信公众号）","url":"https://mp.weixin.qq.com/s/fEu_1QachONJkVM__nZWYA"}],"keywords":["观澜小学","浦东新区","教师培训","4W公式","SPACE","AI幻觉"]},{"id":"evt-9d679411","date":"2026-05-08","title":"教育智能体赋能，助力教师数字转型——吴迅中学教育智能体应用能力提升培训","title_full":"教育智能体赋能，助力教师数字转型——吴迅中学教育智能体应用能力提升培训","summary":"主讲《AI时代的教师核心素养——教育智能体的设计和搭建》，以“2026年是智能体元年”开篇，系统讲解AI智能体三大核心要素（认知能力、执行能力、长期记忆），以腾讯WorkBuddy为案例现场演示备课、课堂互动、作业批改、学情分析等全流程应用。","category":"培训","sources":[{"name":"吴迅中学家校联盟（微信公众号）","url":"https://mp.weixin.qq.com/s/AjZc65v3gGO3LmcyskBWCg"}],"keywords":["吴迅中学","教育智能体","WorkBuddy","AI素养"]},{"id":"evt-2e2444c8","date":"2026-05","title":"数字赋能·文脉润心 — 浦东新区社区学院青年教师专题培训纪实","title_full":"数字赋能·文脉润心 — 浦东新区社区学院青年教师专题培训纪实","summary":"受邀为浦东新区社区学院青年教师开展专题培训，上午场在华东师范大学智慧教育产教基地进行，围绕数字化教学工具应用、混合式教学设计、教育元宇宙场景三大模块展开，引导教师树立“人机协同”的现代化教学思维。下午场为武康路历史文化行走。","category":"培训","sources":[{"name":"浦东社区教育（微信公众号）","url":"https://mp.weixin.qq.com/s/iM1aVf1TimrgqZVw7YxZDA"}],"keywords":["浦东新区","社区教育","青年教师培训","数字化教学","人机协同"]},{"id":"evt-committee2026","date":"2026-04-18","title":"工程中心第五届技术委员会第二次会议在产教基地召开，","title_full":"工程中心第五届技术委员会第二次会议在产教基地召开，鲁力立汇报「教育元宇宙未来课堂的场景构建」","summary":"2026年4月18日（产教基地揭牌当天），上海数字化教育装备工程技术研究中心第五届技术委员会第二次会议在智慧教育产教基地召开。清华大学程建钢教授主持专家质询，科技处处长乔德礼致辞，顾小清教授担任主任。鲁力立作为三大重点专题汇报人之一，系统汇报「教育元宇宙未来课堂的场景构建」，展示团队在中小学实证研究中的突破性成果。会议还听取了教育大模型技术标准（吴永和教授汇报）和数智大脑（朱嘉文老师汇报）专题，专家一致通过年度工作报告并高度评价。","category":"学术会议","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/90/ab/c16571a757931/page.htm","date":"2026-04-26"}],"source_count":1,"type":"event_cluster"},{"id":"evt-base2026","date":"2026-04-18","title":"全国首个智慧教育产教基地在上海多媒体谷揭牌，鲁力立代表基地进行系统阐述","title_full":"全国首个智慧教育产教基地在上海多媒体谷揭牌，鲁力立代表基地进行系统阐述","summary":"2026年4月18日，华东师范大学上海数字化教育装备工程技术研究中心智慧教育产教基地在上海市静安区多媒体大厦隆重揭牌。这是全国首个深度融合「教育产品×商业地产×金融投资」的实体化、场景化、市场化教育数字化平台。鲁力立为基地核心成员。","category":"基地建设","sources":[{"name":"教育信息技术学系官网","url":"http://www.deit.ecnu.edu.cn/8c/02/c26200/a756738/page.htm","date":"2026-04-18"},{"name":"华东师大官网（媒体关注）","url":"https://www.ecnu.edu.cn/info/1426/71991.htm","date":"2026-04-20"},{"name":"上观新闻","url":"https://m.jfdaily.com/sgh/detail?id=1737814","date":"2026-04-21"},{"name":"同花顺财经","url":"https://stock.10jqka.com.cn/20260421/c676163353.shtml","date":"2026-04-21"}],"source_count":4,"type":"event_cluster"},{"id":"evt-base-luke2026","date":"2026-04-18","title":"在华东师范大学智慧教育产教基地揭牌仪式上，","title_full":"在华东师范大学智慧教育产教基地揭牌仪式上，基地负责人鲁力立（上海数字化教育装备工程技术研究中心科技转化主任助理）向与会嘉宾介绍基地「自选超市+联合研发+投资融资+示范空间」四位一体运营模式，以及首批四大孵化产品（云痕智能教学一体化平台、数智优学、教育元宇宙未来课堂、星脉智育）。鲁力立团队研发的「教育元宇宙未来课堂」作为首批孵化产品正式发布。","summary":"2026年4月18日，华东师范大学智慧教育产教基地揭牌仪式举行。基地负责人鲁力立向来自全国40余所顶尖中小学代表和30余家行业领军企业的嘉宾，介绍基地功能和首批孵化产品。「教育元宇宙未来课堂」作为鲁力立团队的核心成果，在揭牌仪式上正式发布，标志着该项目从科研走向市场化的重要里程碑。","category":"基地建设","sources":[{"name":"华东师范大学官网","url":"https://www.ecnu.edu.cn/info/1094/72008.htm","date":"2026-04-22"},{"name":"静安区政府官网","url":"https://www.jingan.gov.cn/rmtzx/003001/20260421/39fc0bce-b91b-4872-8fdf-11b3335896f5.html","date":"2026-04-21"}],"source_count":2,"type":"event_cluster"},{"id":"evt-book-hybrid2026","date":"2026-04-08","title":"鲁力立担任副主编的《混合式课程设计：从新手到专家》由中国传媒大学出版社出版","title_full":"鲁力立担任副主编的《混合式课程设计：从新手到专家》由中国传媒大学出版社出版（ISBN 978-7-5657-4064-0，周小勇主编）","summary":"2026年4月8日，《混合式课程设计：从新手到专家》由中国传媒大学出版社正式出版。鲁力立担任副主编（主编：周小勇；其他副主编：张静、林德龙、冷静）。该书覆盖混合式课程全生命周期，从理念认知到技术实操，手把手教授超星、雨课堂、Blackboard等平台操作，并前瞻布局AI赋能教学。","category":"学术成果","sources":[{"name":"中国传媒大学出版社","url":"https://www.cucp.com.cn/News/Details/2877","date":"2026-04-08"},{"name":"高校教材图书网","url":"https://www.sinobook.com.cn/b2c/scrp/bookdetail.cfm?iBookNo=1132812","date":"2026-04-08"},{"name":"云台购书平台","url":"https://www.yuntaigo.com/book.action?recordid=b2hhb2ZtbGM5Nzg3NTY1NzQwNjQw","date":"2026-03-01"}],"source_count":3,"type":"event_cluster"},{"id":"evt-book-aigc2026","date":"2026-04-01","title":"鲁力立独著《AIGC重塑数字媒体创作》由上海交通大学出版社正式出版（ISBN","title_full":"鲁力立独著《AIGC重塑数字媒体创作》由上海交通大学出版社正式出版（ISBN 9787313337528，360页，51.6万字）","summary":"2026年4月，鲁力立独著的《AIGC重塑数字媒体创作》由上海交通大学出版社正式出版。全书共360页，51.6万字，是第一本系统性探讨AIGC驱动下数字媒体创作范式变革的专著，覆盖文本、图像、音视频、3D等多模态内容的AI生成与创作工作流。","category":"学术成果","sources":[{"name":"新华书店网上商城","url":"https://item.xhsd.com/items/110000104856697","date":"2026-04-01"},{"name":"高校教材图书网","url":"https://www.sinobook.com.cn/b2c/scrp/bookdetail.cfm?iBookNo=1118000","date":"2026-04-01"}],"source_count":2,"type":"event_cluster"},{"id":"pub-aigc-book2026","date":"2026-04-01","title":"2026年4月，鲁力立著作《AIGC重塑数字媒体创作》由上海高校智库华东师范大学","title_full":"2026年4月，鲁力立著作《AIGC重塑数字媒体创作》由上海高校智库华东师范大学数字文化发展协同创新中心出版上架。该书系统阐述AIGC技术在数字媒体创作领域的应用与影响，在新华书店、淘宝等渠道销售。","summary":"2026年4月，鲁力立所著《AIGC重塑数字媒体创作》正式出版上架，由上海高校智库华东师范大学数字文化发展协同创新中心出版。该书是鲁力立在AIGC与数字媒体交叉领域的重要学术成果，标志着其在AI教育应用方向的持续深耕。","category":"学术成果","sources":[{"name":"新华书店","url":"https://item.xhsd.com/items/110000104856697","date":"2026-04-01"}],"source_count":1,"type":"article"},{"id":"evt-f77a21ee","date":"2026-03-17","title":"拥抱AI变革，赋能智慧育人——吴迅中学特色通识课（II）","title_full":"拥抱AI变革，赋能智慧育人——吴迅中学特色通识课（II）","summary":"主讲《AI时代教师的核心素养》，围绕四大维度：①精准提问（SPACE提示词方法论）；②顶层设计（意义建构模型E-M-G）；③人机协作（多模型协同覆盖教学全流程）；④批判思维（警惕技术异化、教育名物化风险）。","category":"培训","sources":[{"name":"吴迅中学家校联盟（微信公众号）","url":"https://mp.weixin.qq.com/s/gqDfVK846aG3ZtZ_eVI9iA"}],"keywords":["吴迅中学","SPACE","E-M-G模型","批判思维","人机协作"]},{"id":"evt-4ffb4147","date":"2026-02-27","title":"【第1827期】AI时代，我们应当如何教学？","title_full":"【第1827期】AI时代，我们应当如何教学？——记2025学年第二学期特色通识课（I）","summary":"受邀赴吴迅中学开展2025学年第二学期首场特色通识课，以《AI时代，我们应当如何教学？》为题，围绕AI赋能教学资源革新、推动课堂模式变革、明确AI能力边界、掌握AI使用方法论四个维度展开，现场演示30秒生成交互式网页课件，提出PERP人机协作新路径。","category":"培训","sources":[{"name":"吴迅中学家校联盟（微信公众号）","url":"https://mp.weixin.qq.com/s/WuemeP4ZdUDxVJT1HVFJTg"}],"keywords":["吴迅中学","AI教学","通识课","人机协同","PERP"]},{"id":"evt-pengpu2026","date":"2026-02-05","title":"静安区彭浦镇党委书记程凯带队调研华东师大智慧教育产教基地，鲁力立陪同讲解","title_full":"静安区彭浦镇党委书记程凯带队调研华东师大智慧教育产教基地，鲁力立陪同讲解","summary":"彭浦镇党委书记程凯一行在顾小清教授、鲁力立高级工程师的陪同下，深入考察了位于多媒体谷的基地实体化产业融合平台，重点走访了500㎡的「未来学校」样板空间。","category":"基地建设","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/5a/10/c16571a743952/page.htm","date":"2026-02-12"}],"source_count":1,"type":"event_cluster"},{"id":"evt-pengpu-invest2026","date":"2026-02-02","title":"鲁力立在「2026年彭浦镇招商服务一体化推进活动」中代表智慧教育产教基地进行系统","title_full":"鲁力立在「2026年彭浦镇招商服务一体化推进活动」中代表智慧教育产教基地进行系统阐述","summary":"2026年2月2日，在「2026年彭浦镇招商服务一体化推进活动」中，鲁力立代表华东师范大学智慧教育产教基地，围绕基地建设初心、产业模式、商业逻辑及发展愿景进行了系统阐述。鲁力立提出基地将构建「产业-教育-政府-研发」四端协同的创新模式，打造全国首个面向未来的智慧教育交易与发展生态平台。发言引起静安区副区长胡勇及彭浦镇领导班子集体高度重视，直接促成了彭浦镇党委书记程凯于2月5日的回访调研，标志着「智慧教育×超高清视听」政校协同模式进入提速阶段。","category":"基地建设","sources":[{"name":"工程中心官网（彭浦镇调研报道）","url":"https://ercdee.ecnu.edu.cn/5a/10/c16571a743952/page.htm","date":"2026-02-12"}],"source_count":1,"type":"event_cluster"},{"id":"evt-smart-edu-base","date":"2026-01-29","title":"全国首个智慧教育产教基地正式成立——深度融合「教育产品×商业地产×金融投资」","title_full":"全国首个智慧教育产教基地正式成立——深度融合「教育产品×商业地产×金融投资」","summary":"2026年1月29日，华东师范大学智慧教育产教基地正式成立，是全国首个深度融合教育产品、商业地产与金融投资的产教融合平台。鲁力立作为核心成员参与。此后4月，基地获中国教育报、经济日报、中国经济网、科学网、上海观察、看看新闻（上海广播电视台）、腾讯新闻、搜狐新闻等17家主流媒体报道。","category":"基地建设","sources":[{"name":"华东师大官网","url":"http://www.deit.ecnu.edu.cn/55/9a/c26200a742810/page.htm"},{"name":"中国教育报","url":"http://www.jyb.cn/rmtzcg/xwy/wzxw/202604/t20260420_2111469257.html"},{"name":"经济日报","url":"https://proapi.jingjiribao.cn/detail.html?id=651186"},{"name":"中国经济网","url":"http://www.ce.cn/xwzx/gnsz/gdxw/202604/t20260420_2917151.shtml"},{"name":"科学网","url":"https://news.sciencenet.cn/htmlnews/2026/4/563400.shtm"},{"name":"上海观察","url":"https://sghexport.shobserver.com/html/baijiahao/2026/04/20/1737556.html"},{"name":"看看新闻","url":"https://www.kankanews.com/detail/qMyEAXV9Ky8"}],"source_count":7,"type":"event_cluster"},{"id":"evt-edufair2025","date":"2025-11-15","title":"教育元宇宙未来课堂亮相第七届中国教育创新成果公益博览会（珠海）","title_full":"教育元宇宙未来课堂亮相第七届中国教育创新成果公益博览会（珠海）","summary":"鲁力立老师携「教育元宇宙未来课堂」创新成果亮相在珠海举行的第七届中国教育创新成果公益博览会（教博会），本届教博会展览面积突破3万平方米，近2000家单位参展，成为本届教博会的亮点之一。","category":"项目里程碑","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/30/aa/c16571a733354/page.htm","date":"2025-12-02"}],"source_count":1,"type":"event_cluster"},{"id":"evt-lecture2025","date":"2025-10-31","title":"鲁力立受邀为高新一小教育集团中层干部培训班主讲AI时代教育数字化","title_full":"鲁力立受邀为高新一小教育集团中层干部培训班主讲AI时代教育数字化","summary":"2025年10月31日，鲁力立受邀为高新一小教育集团2025-2026学年度中层干部培训（总第13期）主讲，现场演示AI赋能教育的创新应用：在AI驱动下化身沉浸式微电影、无需代码即可生成交互式动态网页课件等，干货满满的培训内容引发热烈反响。","category":"培训","sources":[{"name":"高新一小教育集团公众号","url":"https://mp.weixin.qq.com/s?__biz=MzI0Nzk0ODEwNQ==&mid=2247571883&idx=5&sn=bfc8ed0084213e789f290b445dca6379","date":"2025-10-31"}],"source_count":1,"type":"event_cluster"},{"id":"award-unesco2025-lulili","date":"2025-10-27","title":"2025年10月27日，在「2025数字化终身学习国际会议」上，","title_full":"2025年10月27日，在「2025数字化终身学习国际会议」上，鲁力立带领团队打造的「面向基础教育的教育元宇宙未来课堂」项目获评「智慧学习生态系统优秀案例奖」。该奖项由联合国教科文组织终身学习研究所（UIL）和联合国教科文组织教育信息技术研究所（UNESCO IITE）联合颁发。","summary":"2025年10月，鲁力立带领团队项目获联合国教科文组织「智慧学习生态系统优秀案例奖」，是其在教育元宇宙领域的国际学术影响力的重要里程碑。","category":"荣誉奖项","sources":[{"name":"华东师范大学上海数字化教育装备工程技术研究中心官网","url":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page.htm","date":"2025-10-27"}],"source_count":1,"type":"article"},{"id":"evt-554c3a7a","date":"2025-10-24","title":"AI时代，我们要如何教学？——龚路中学教师培训","title_full":"AI时代，我们要如何教学？——龚路中学教师培训","summary":"主讲《AI时代，我们要如何教学？》，围绕三大维度：①AI教学场景应用（个性化错题集、主观题批阅、知识点动画化、交互式网页课件）；②教育三大变革（效能革命、范式重构、人机协同）；③重视“人”的价值（情感支持、师生联结、教育本质）。","category":"培训","sources":[{"name":"上海第二工业大学附属龚路中学（微信公众号）","url":"https://mp.weixin.qq.com/s/DuDnpznsMBsLX9TNRcHLWg"}],"keywords":["龚路中学","AI教学","效能革命","范式重构","人机协同"]},{"id":"evt-unesco2025","date":"2025-10-18","title":"教育元宇宙未来课堂获联合国教科文组织「智慧学习生态系统优秀案例奖」","title_full":"教育元宇宙未来课堂获联合国教科文组织「智慧学习生态系统优秀案例奖」","summary":"在「2025数字化终身学习国际会议」上，鲁力立团队打造的「面向基础教育的教育元宇宙未来课堂」项目获评智慧学习生态系统优秀案例奖。会议由上海开放大学、联合国教科文组织终身学习研究所(UIL)、联合国教科文组织教育信息技术研究所(UNESCO IITE)联合主办。","category":"荣誉奖项","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page.htm","date":"2025-10-27"},{"name":"新华社上海","url":"http://sh.xinhuanet.com/20251020/7bf2bfa280a14c0899bdc91e3c3b6060/c.html","date":"2025-10-20"},{"name":"腾讯新闻","url":"https://view.news.qq.com/a/20251018A05P9D00","date":"2025-10-18"}],"source_count":3,"type":"event_cluster"},{"id":"evt-unesco-award","date":"2025-10-18","title":"「2025数字化终身学习国际会议」上教育元宇宙未来课堂获联合国教科文组织智慧学习","title_full":"「2025数字化终身学习国际会议」上教育元宇宙未来课堂获联合国教科文组织智慧学习生态系统优秀案例奖","summary":"2025年10月，鲁力立在上海开放大学参加「2025数字化终身学习：创新·智能·融合」国际会议，作「面向基础教育的教育元宇宙未来课堂」主题报告，该项目荣获联合国教科文组织&上海开放大学联合颁发的智慧学习生态系统优秀案例奖。","category":"荣誉奖项","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page.htm"}],"source_count":1,"type":"event_cluster"},{"id":"evt-bac9ca5f","date":"2025-07-03","title":"名校领航逐梦·智启教育新章 | 华东师大暑期学校教师培训活动","title_full":"名校领航逐梦·智启教育新章 | 华东师大暑期学校教师培训活动","summary":"在华东师大与乌鲁木齐市教育研究中心联合主办的暑期学校教师培训中主讲《AI时代，我要如何教学》，围绕AI时代教师四大核心素养展开，带领现场教师动手实操，为边疆地区教师应对教育数字化转型提供指导。","category":"培训","sources":[{"name":"华师生环（微信公众号）","url":"https://mp.weixin.qq.com/s/mxO2tgAsgLOFVTlNBXhjZA"}],"keywords":["乌鲁木齐","暑期学校","生态文明教育","教师培训","数字化转型"]},{"id":"evt-paper-jcer2025","date":"2025-07-01","title":"Lu L, Zhao Y, Ma P, et al.","title_full":"Lu L, Zhao Y, Ma P, et al. Opportunities and Challenges of Educational Evaluation in the Metaverse. Journal of Contemporary Educational Research, 2025, 9(7): 226-231. DOI: 10.26689/JCER.V9I7.11359","summary":"2025年7月，鲁力立作为第一作者在Journal of Contemporary Educational Research发表论文，系统探讨了元宇宙技术如何通过高度沉浸和强大社交特性，为传统教育评价提供创新转型路径，助力构建个人与群体的全面多维画像。","category":"学术成果","sources":[{"name":"JCER期刊官网","url":"https://ojs.bbwpublisher.com/index.php/JCER/article/view/11359/9867","date":"2025-07-01"},{"name":"维普中文期刊","url":"https://qikan.cqvip.com/Qikan/Article/Detail?id=7201644362","date":"2025-07-01"},{"name":"百度学术","url":"https://xueshu.baidu.com/usercenter/paper/show?paperid=1n6900p0fx6s0m20ap3t0x1030766758","date":"2025-07-01"},{"name":"Semantic Scholar","url":"https://www.semanticscholar.org/paper/Opportunities-and-Challenges-of-Educational-in-the-Lu-Zhao/7c137dc21a0f683d49f317b59683b48da431d8e1","date":"2025-07-01"}],"source_count":4,"type":"event_cluster"},{"id":"evt-library2025","date":"2025-06-05","title":"华东师大元宇宙未来学习空间正式点亮启用，鲁力立携手小花狮数智学伴机器人讲解","title_full":"华东师大元宇宙未来学习空间正式点亮启用，鲁力立携手小花狮数智学伴机器人讲解","summary":"2025年6月5日（芒种日），华东师大普陀校区图书馆元宇宙未来学习空间正式点亮启用。鲁力立在空间参观环节携手小花狮数智学伴机器人，为大家详细讲解。","category":"项目里程碑","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/b0/97/c16571a700567/page.htm","date":"2025-06-10"},{"name":"华禹教育网","url":"http://www.huaue.com/news/2025/202566103614.htm","date":"2025-06-06"},{"name":"搜狐（周报报道）","url":"https://www.sohu.com/a/904118894_121106822","date":"2025-06-02"}],"source_count":3,"type":"event_cluster"},{"id":"evt-library-future-space","date":"2025-06-05","title":"数智跃升——中北图书馆二楼「元宇宙未来学习空间」芒种日正式启用，","title_full":"数智跃升——中北图书馆二楼「元宇宙未来学习空间」芒种日正式启用，配备VR/AR/MR及小花狮数智学伴","summary":"2025年6月5日芒种日，鲁力立担任总设计师的学校数智跃升计划重要建设内容——中北图书馆二楼「元宇宙未来学习空间」正式点亮启用。空间配备VR/AR/MR设备及小花狮数智学伴机器人，接待全国十多个省市参观交流10余次，试点校常规化授课覆盖学生超4000人次。获上观新闻、腾讯新闻、搜狐等广泛报道。","category":"项目里程碑","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/b0/97/c16571a700567/page.htm"},{"name":"上观新闻","url":"https://www.jfdaily.com/wx/detail.do?id=1017407"}],"source_count":2,"type":"event_cluster"},{"id":"evt-fdb6d1a3","date":"2025-05-18","title":"循长征光影之途 感数智教育之脉","title_full":"循长征光影之途 感数智教育之脉","summary":"参与华东师大教育信息技术学系专业型硕士研究生党支部赴智慧教育产教基地的红色采风活动，在交流环节与同学们就智慧教育产品的课堂需求、用户体验、教育适配性及底层技术实现等专业问题展开深入讨论。","category":"基地建设","sources":[{"name":"E生向党（微信公众号）","url":"https://mp.weixin.qq.com/s/ymuj48vQLGI6N61YxX3ocg"}],"keywords":["智慧教育产教基地","长征VR","党支部","红色教育"]},{"id":"evt-ai-education-forum","date":"2025-04-20","title":"承办并主持「智创赛道·育见未来——生成式AI驱动教育新生态」研讨会暨静安区数字化","title_full":"承办并主持「智创赛道·育见未来——生成式AI驱动教育新生态」研讨会暨静安区数字化好学校案例分享及产教融合专题论坛","summary":"2025年，鲁力立承办并主持「智创赛道·育见未来——生成式AI驱动教育新生态，生成式人工智能赋能教育研讨会暨静安区数字化好学校案例分享及产教融合专题论坛」，推动AI教育创新实践。","category":"学术会议","type":"event_cluster"},{"id":"evt-sheke-2024","date":"2024-12-01","title":"获批上海市哲学社会科学规划办公室项目「数智时代上海文化新业态与新消费研究」","title_full":"获批上海市哲学社会科学规划办公室项目「数智时代上海文化新业态与新消费研究」","summary":"2024年，鲁力立获批上海市哲社科学规划办公室项目「数智时代上海文化新业态与新消费研究」。同年还主持了横向项目「针对中学生的心理健康科普动画片创作」。","category":"项目里程碑","type":"event_cluster"},{"id":"evt-classroom2024","date":"2024-11-15","title":"教育元宇宙未来智能教室项目公布：三规格实体教室设计方案","title_full":"教育元宇宙未来智能教室项目公布：三规格实体教室设计方案","summary":"鲁力立团队在华东师大科技成果展示平台公布「教育元宇宙未来智能教室」设计方案：小型接入舱（3-5人）、中型空间站（15-20人）、大型沉浸式课堂，融合CAVE、MR、AR、全息技术等多元虚拟现实技术。","category":"项目里程碑","sources":[{"name":"华东师大科技处","url":"https://kjc.ecnu.edu.cn/f2/14/c45109a651796/page.htm","date":"2024-11-15"},{"name":"华东师大科技园","url":"https://kjy.ecnu.edu.cn/38/34/c47067a669748/page.htm","date":"2025-01-26"}],"source_count":2,"type":"event_cluster"},{"id":"evt-transform-clinic2024","date":"2024-10-31","title":"2024年10月31日，《光明日报》头版报道华东师范大学设立科技成果转化「门诊」。","title_full":"2024年10月31日，《光明日报》头版报道华东师范大学设立科技成果转化「门诊」。鲁力立作为教育信息技术学系高级工程师，带着「教育元宇宙未来课堂」项目资料参加问诊，表示：「给成果『问诊』！这是我的『教育元宇宙未来课堂』项目资料。成果出来后，很多来考察的，但我也不知道应该跟谁合作。听说学校开了科技成果转化『门诊』，我立刻预约了！刚才聊了一个多小时，思路一下子打开了！」该项目在2022年世界人工智能大会（WAIC）上首次发布后获广泛关注，入选2022年WAIC《产业元宇宙创新应用案例集》、上海教博会数字化转型应用标杆案例等。","summary":"2024年10月，华东师范大学设立科技成果转化「门诊」，解决科研人员「不敢转、不想转、不会转」的问题。鲁力立携「教育元宇宙未来课堂」项目参加问诊，该项目已在普陀区教育学院附属学校落地应用，但因经验不足遇阻。专家们用了一个多小时，从多个角度提供了详细、规范、多元的转化方案。两次门诊共19个项目参与深度问诊，5个项目已遴选进入学校概念验证中心。","category":"社会服务","sources":[{"name":"华东师范大学官网（转载《光明日报》头版）","url":"https://www.ecnu.edu.cn/info/1094/67865.htm","date":"2024-10-31"}],"source_count":1,"type":"article"},{"id":"evt-2f5952a2","date":"2024-10-28","title":"华东师大——沈阳科技学院新教师教学能力提升研修班（第二期）","title_full":"华东师大——沈阳科技学院新教师教学能力提升研修班（第二期）","summary":"与张琳老师共同主讲《教学观摩：优秀教学示范与交流》，讲解教学设计流程、教学方法与技巧、课堂管理与组织、学生评价与反馈、教学软件实现第一二课堂联动。","category":"培训","sources":[{"name":"沈阳科技学院（微信公众号）","url":"https://mp.weixin.qq.com/s/zTL64hIJA2pOcd9xgteWtQ"}],"keywords":["沈阳科技学院","新教师培训","教学观摩","教学设计"]},{"id":"evt-clinic2024","date":"2024-10-08","title":"华东师大首开「科技成果转化门诊」，鲁力立带教育元宇宙项目「问诊」，","title_full":"华东师大首开「科技成果转化门诊」，鲁力立带教育元宇宙项目「问诊」，光明日报头版聚焦","summary":"华东师范大学在上海市科委、工信部火炬中心指导下设立「科技成果转化门诊」。教育信息技术学系高级工程师鲁力立携带「教育元宇宙未来课堂」项目资料参加首场门诊。2024年10月31日，光明日报头版以「门诊」为题进行专题报道。","category":"媒体报道","sources":[{"name":"光明日报头版","url":"https://epaper.gmw.cn/gmrb/html/2024-10/31/nw.D110000gmrb_20241031_4-01.htm","date":"2024-10-31"},{"name":"光明网","url":"https://news.gmw.cn/2024-10/31/content_37647549.htm","date":"2024-10-31"},{"name":"华东师大官网转载","url":"https://www.ecnu.edu.cn/info/1094/67865.htm","date":"2024-10-31"},{"name":"上观新闻（门诊火了）","url":"https://www.jfdaily.com/sgh/detail?id=1452390","date":"2024-10-31"},{"name":"新民晚报","url":"https://paper.xinmin.cn/html/xmwb/2024-10-08/3/194150.html","date":"2024-10-08"},{"name":"腾讯新闻","url":"https://news.qq.com/rain/a/20241008A07CFP00","date":"2024-10-08"},{"name":"今日头条","url":"https://www.toutiao.com/article/7423343526517211699/","date":"2024-10-08"},{"name":"搜狐新闻","url":"https://www.sohu.com/a/844239378_121687419","date":"2024-10-31"},{"name":"百度百家号","url":"https://baijiahao.baidu.com/s?id=1812339168634001628","date":"2024-10-08"},{"name":"今日头条（门诊火了）","url":"https://www.toutiao.com/article/7431665258021913142/","date":"2024-10-31"}],"source_count":10,"type":"event_cluster"},{"id":"evt-textbook-drama2024","date":"2024-09-01","title":"鲁力立参编的义务教育教科书《艺术·影视（含数字媒体艺术","title_full":"鲁力立参编的义务教育教科书《艺术·影视（含数字媒体艺术）》系列由教育科学出版社出版，2024年秋季全国投入使用","summary":"2024年9月起，首套义务教育教科书《艺术·戏剧》《艺术·舞蹈》《艺术·影视（含数字媒体艺术）》正式在全国投入使用，这是戏剧、舞蹈、影视首次被纳入国家义务教育课程体系。鲁力立参编九年级教师参考用书（教育科学出版社），助力国家级教材建设。","category":"学术成果","sources":[{"name":"教育科学出版社（八年级上册）","url":"https://www.esph.com.cn/tszy/jcjy/414c6d8465574daf92dfd75005e6342f.htm","date":"2024-09-01"},{"name":"腾讯新闻（新三科教材）","url":"https://news.qq.com/rain/a/20240902A04ZM000","date":"2024-09-02"}],"source_count":2,"type":"event_cluster"},{"id":"evt-10033d0c","date":"2024-08-12","title":"共探教育新未来！鑫考股份教育生态峰会圆满落幕","title_full":"共探教育新未来！鑫考股份教育生态峰会圆满落幕","summary":"以《AI时代教育的变与守》为题作主题分享：“变”——技术打破传统边界，个性化精准赋能取代批量培养；“守”——教师思维引导、情感关怀、价值塑造不可替代，AI应成为支撑教育公平的桥梁。","category":"培训","sources":[{"name":"鑫考股份（微信公众号）","url":"https://mp.weixin.qq.com/s/83HY5avXyJD55nEOaDiZ5Q"}],"keywords":["鑫考股份","教育生态","AI教育","教育公平"]},{"id":"evt-jiaoyuan2024","date":"2024-06-19","title":"鲁力立受邀为教院友中高一学生主讲创客大讲堂「科技赋能时代 AI创新未来」","title_full":"鲁力立受邀为教院友中高一学生主讲创客大讲堂「科技赋能时代 AI创新未来」","summary":"2024年6月19日，鲁力立受邀为闵行区教育学院附属友爱实验中学（教院友中）高一年级学生主讲创客大讲堂，主题为「科技赋能时代 AI创新未来」。","category":"培训","sources":[{"name":"教院友中微信公众号","url":"https://mp.weixin.qq.com/s?__biz=MzU4OTQ3MDcyOA==&mid=2247492810&idx=1&sn=471a000b9e8b3a3a89592310fa6a2e27","date":"2024-06-19"}],"source_count":1,"type":"event_cluster"},{"id":"evt-entrepreneurship2024","date":"2024-06-13","title":"鲁力立作为核心成员创立壹生万幕（上海）教育科技有限公司","title_full":"鲁力立作为核心成员创立壹生万幕（上海）教育科技有限公司","summary":"壹生万幕（上海）教育科技有限公司正式成立，注册资本100万元，注册地址位于上海市静安区多媒体谷。公司以元宇宙和AI为主营业务方向，标志着鲁力立团队在教育科技领域的产学研一体化实践迈入新阶段。","category":"创业动态","sources":[{"name":"企查查","url":"https://www.qcc.com/firm/4dadb6e8ef000571325d66f6e0b6e582.html","date":"2024-06-13"},{"name":"爱企查（企业信息）","url":"https://aiqicha.baidu.com/company_detail_53457774853779","date":""},{"name":"华东师大教师主页（个人介绍）","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp","date":""}],"source_count":3,"type":"event_cluster"},{"id":"evt-textbook2023","date":"2023-03-01","title":"鲁力立主编的「十四五」规划教材《教育影视基础》正式出版发行","title_full":"鲁力立主编的「十四五」规划教材《教育影视基础》正式出版发行","summary":"鲁力立主编的《教育影视基础》由高等教育出版社正式出版，被列入广播电视专业「十四五」规划教材。全书共分六章，前三章从影视和教育两层切入建立基础认知，后三章从微观角度剖析影视理论并教授当前主流影视制作技术。此书在得到APP、掌阅iReader、对外经贸大学图书馆等多平台同步上线。","category":"学术成果","sources":[{"name":"得到APP电子书","url":"https://www.dedao.cn/ebook/detail?id=rJRdy1qe4xAVBgZrvdGmz8ykaop6QWXe7nN3EJnD7LR51qb2KY9NPMXOljVa28m5&source=douban","date":"2023-03-01"},{"name":"对外经贸大学图书馆","url":"https://opac.uibe.edu.cn/opac/book/760e2ccb30c7564f256e418241157cd0","date":""},{"name":"iReader掌阅","url":"https://www.ireader.com.cn/index.php?ca=bookdetail.index&bid=13015378","date":""},{"name":"云台购书平台","url":"https://www.yuntaigo.com/book.action?recordid=bmtvbm9iemM5Nzg3NTY1NzMyMjE4","date":""}],"source_count":4,"type":"event_cluster"},{"id":"evt-paper2023","date":"2023-02-10","title":"鲁力立等在《图书馆论坛》发表元宇宙视角下非遗科普VR设计学术论文，多平台收录","title_full":"鲁力立等在《图书馆论坛》发表元宇宙视角下非遗科普VR设计学术论文，多平台收录","summary":"鲁力立、陆怡婕、许鑫在CSSCI期刊《图书馆论坛》2023年第43卷第2期发表论文《寓教于乐：元宇宙视角下口头文学类非遗的科普VR设计》，以上海非遗「沪谚」为例。该论文被知网、万方、维普、百度学术等多平台收录。","category":"学术成果","sources":[{"name":"图书馆论坛期刊官网","url":"http://tsglt.zslib.com/CN/Y2023/V43/I2/141","date":"2023-02-10"},{"name":"百度学术","url":"https://xueshu.baidu.com/usercenter/paper/show?paperid=1d170eu07r1e04j07q1s0jj0a5310983","date":""},{"name":"万方数据","url":"https://d.wanfangdata.com.cn/periodical/tsglt202302016","date":""},{"name":"维普中文期刊","url":"https://qikan.cqvip.com/Qikan/Article/Detail?id=7108942052","date":""}],"source_count":4,"type":"event_cluster"},{"id":"evt-mixed-teaching-award","date":"2022-12-01","title":"实践型课程《教育影视创作与实践》获全国高校混合式教学设计创新大赛特等奖","title_full":"实践型课程《教育影视创作与实践》获全国高校混合式教学设计创新大赛特等奖（全国仅5席，华东师大至今唯一）","summary":"2022年，鲁力立主讲的实践型课程《教育影视创作与实践》获全国高校混合式教学设计创新大赛特等奖，全国仅5人获此殊荣，是华东师范大学目前唯一的特等奖获得者。该课程主参与获上海高校一流本科课程。","category":"荣誉奖项","sources":[{"name":"华东师大教师个人主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"}],"source_count":1,"type":"event_cluster"},{"id":"evt-waic2022","date":"2022-09-02","title":"2022世界人工智能大会（WAIC）：教育元宇宙未来课堂首次发布，","title_full":"2022世界人工智能大会（WAIC）：教育元宇宙未来课堂首次发布，入选产业元宇宙创新应用案例集","summary":"鲁力立老师在2022年世界人工智能大会教育论坛上首次发布「教育元宇宙未来课堂」项目，分享了面向中小学的教育元宇宙科技空间场景解决方案。项目同年入选WAIC《产业元宇宙创新应用案例集》。","category":"项目里程碑","sources":[{"name":"华东师范大学官网","url":"https://www.ecnu.edu.cn/info/1095/60876.htm","date":"2022-09-04"},{"name":"澎湃新闻","url":"https://m.thepaper.cn/baijiahao_19750319","date":"2022-09-03"},{"name":"今日头条","url":"https://www.toutiao.com/article/7139114771567411746/","date":"2022-09-03"}],"source_count":3,"type":"event_cluster"},{"id":"evt-profile-ecnu","date":"2022-01-01","title":"鲁力立个人主页被华东师大及外部平台收录与转载","title_full":"鲁力立个人主页被华东师大及外部平台收录与转载","summary":"鲁力立的个人简历与学术信息被华东师大教师个人主页、教育信息技术学系官网、免费考研网导师库、百度百科等平台收录，持续更新其教学成果与学术贡献。","category":"学术成果","sources":[{"name":"华东师大教师个人主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp","date":""},{"name":"教育信息技术学系主页","url":"http://www.deit.ecnu.edu.cn/84/94/c26169a689300/page.htm","date":"2022-01-01"},{"name":"免费考研网导师库","url":"http://school.freekaoyan.com/sh/ecnu/daoshi/2021/01-15/16107196481321426.shtml","date":"2021-01-15"},{"name":"百度百科","url":"https://baike.baidu.com/item/%E9%B2%81%E5%8A%9B%E7%AB%8B/49789866","date":""}],"source_count":4,"type":"event_cluster"},{"id":"evt-mengliu2021","date":"2021-09-10","title":"华东师大「孟宪承·刘佛年教育成就陈列室」建成开展，鲁力立担任数字技术总设计师，","title_full":"华东师大「孟宪承·刘佛年教育成就陈列室」建成开展，鲁力立担任数字技术总设计师，创新设计虚实交互展板和CAVE沉浸电影","summary":"2021年9月10日（第37个教师节），华东师大校庆70周年献礼标志性建筑「孟宪承·刘佛年教育成就陈列室」正式建成开展。陈列室创新引入最新数字媒体交互技术和虚拟现实技术，采用传统展陈与红外线互动投影、CAVE沉浸式系统结合。鲁力立担任数字技术总设计师，主持设计虚实交互展板和CAVE沉浸电影。","category":"项目里程碑","sources":[{"name":"华东师大官网","url":"https://www.ecnu.edu.cn/info/1094/57845.htm","date":"2021-09-10"},{"name":"人民网上海频道","url":"https://sh.people.com.cn/n2/2021/0910/c134768-34909232.html","date":"2021-09-10"},{"name":"思政网","url":"https://www.sizhengwang.cn/a/gzdt_zxlb/211202/926453.shtml","date":"2021-12-02"}],"source_count":3,"type":"event_cluster"},{"id":"evt-award2021","date":"2021-01-15","title":"教育信息技术学系青年教师鲁力立的课程《教育影视创作与实践》荣获全国混合式教学设计","title_full":"教育信息技术学系青年教师鲁力立的课程《教育影视创作与实践》荣获全国混合式教学设计创新大赛特等奖","summary":"教育学部发布重磅专题报道，详细介绍「85后」青年教师鲁力立2014年入校以来的教学创新历程。她积极利用现代多媒体技术手段改进教学，独创「C60」课程思政理念和移动端+PC端双平台在线教学模式。","category":"荣誉奖项","sources":[{"name":"教育学部专题报道","url":"https://ed.ecnu.edu.cn/c4/f9/c45969a640249/page.htm","date":"2021-01-15"}],"source_count":1,"type":"event_cluster"},{"id":"evt-teaching2020","date":"2020-12-23","title":"鲁力立《教育影视创作与实践》获第二届全国混合式教学设计创新大赛特等奖","title_full":"鲁力立《教育影视创作与实践》获第二届全国混合式教学设计创新大赛特等奖","summary":"华东师大3名教师在第二届全国高校混合式教学设计创新大赛中获奖，教育学部鲁力立老师的课程《教育影视创作与实践》获得特等奖（全国仅5人，华东师大目前唯一特等奖得主）。","category":"荣誉奖项","sources":[{"name":"华东师大教师发展中心","url":"http://www.cftd.ecnu.edu.cn/3b/62/c8348a342882/page.htm","date":"2020-12-23"},{"name":"广西大学教学案例分享","url":"https://jwc.gxu.edu.cn/info/1356/3397.htm","date":"2024-09-09"}],"source_count":2,"type":"event_cluster"},{"id":"evt-ncda2020","date":"2020-11-14","title":"鲁力立指导华东师大学生在第八届全国高校数字艺术设计大赛中斩获多项国奖","title_full":"鲁力立指导华东师大学生在第八届全国高校数字艺术设计大赛中斩获多项国奖","summary":"2020年第八届全国高校数字艺术设计大赛（NCDA），华东师大学生在鲁力立等教师指导下，从6万多幅参赛作品中脱颖而出，获得全国一等奖3项、二等奖6项、三等奖3项。鲁力立累计20余次获全国赛事优秀指导教师称号。","category":"荣誉奖项","sources":[{"name":"华东师大创新创业学院","url":"http://www.cxcy.ecnu.edu.cn/_t3015/2e/f9/c18348a339705/page.htm","date":"2020-11-14"}],"source_count":1,"type":"event_cluster"},{"id":"evt-teachingcompetition2020","date":"2020-06-28","title":"教育学部3位教师在华东师大第十三届青年教师教学比赛中获奖，鲁力立获一等奖","title_full":"教育学部3位教师在华东师大第十三届青年教师教学比赛中获奖，鲁力立获一等奖","summary":"在华东师范大学第十三届青年教师教学比赛中，教育学部3位教师获奖。鲁力立老师凭借出色的教学表现荣获一等奖。该赛事是学校最高教学赛事，历时3个月层层选拔。","category":"荣誉奖项","sources":[{"name":"搜狐教育（教育学部报道）","url":"https://www.sohu.com/a/404601592_652541","date":"2020-06-28"}],"source_count":1,"type":"event_cluster"},{"id":"evt-teachingaward2018","date":"2019-07-01","title":"鲁力立获2018年度上海市高校网络教育优秀成果二等奖","title_full":"鲁力立获2018年度上海市高校网络教育优秀成果二等奖","summary":"鲁力立的网络教育成果获得2018年度上海市高校网络教育优秀成果二等奖，由上海市教卫工作党委、上海市教委和上海教育系统网络文化发展研究中心联合颁发。表彰其在数字媒体教育和网络文化建设方面的突出贡献。","category":"荣誉奖项","sources":[{"name":"华东师大教师主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp","date":""}],"source_count":1,"type":"event_cluster"},{"id":"evt-wangyan2018","date":"2018-12-25","title":"壹幕工作室学生团队创作的公益短片《亡烟》在第五届上海市公益广告大赛中获奖并在上海","title_full":"壹幕工作室学生团队创作的公益短片《亡烟》在第五届上海市公益广告大赛中获奖并在上海地铁公交展播","summary":"教育信息技术学系本科生团队在鲁力立老师指导下创作的公益短片《亡烟》在「微公益·新征程」第五届上海市公益广告大赛中获奖，并登上上海地铁和公交广告屏进行展播。","category":"壹幕工作室","sources":[{"name":"教育信息技术学系","url":"http://www.deit.ecnu.edu.cn/20/07/c26198a270343/page.htm","date":"2018-12-25"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-deit2018","date":"2018-01-01","title":"鲁力立开始负责华东师大数字媒体综合实验中心(含大型演播室)建设","title_full":"鲁力立开始负责华东师大数字媒体综合实验中心(含大型演播室)建设","summary":"2018年前后，鲁力立作为负责人启动数字媒体综合实验中心建设。占地300平方米，配备奥运/春晚同款在线实时虚拟现实融合XR系统、省级卫视频道灯光音响大屏系统及双演播室、配音室，为后续教育元宇宙空间建设奠定硬件基础。","category":"项目里程碑","sources":[{"name":"华东师大教师个人主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"}],"source_count":1,"type":"event_cluster"},{"id":"evt-award2017","date":"2017-12-01","title":"鲁力立获上海市教育发展基金会申万宏源奖教金（省部级）","title_full":"鲁力立获上海市教育发展基金会申万宏源奖教金（省部级）","summary":"鲁力立荣获上海市教育发展基金会申万宏源奖教金，该奖项为省部级奖教金，是对其教学工作的高度认可。同年还获得华东师大本科教学年度贡献奖。","category":"荣誉奖项","sources":[{"name":"教育学部奖教金公示","url":"https://ed.ecnu.edu.cn/b2/db/c45902a635611/page.htm","date":"2017"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-award2017","date":"2017-12-01","title":"鲁力立荣获2017年度上海市教育发展基金会申万宏源奖教金、","title_full":"鲁力立荣获2017年度上海市教育发展基金会申万宏源奖教金、华东师范大学本科教学年度贡献奖","summary":"2017年，鲁力立获得两项重要教学荣誉:上海市教育发展基金会申万宏源奖教金(省部级)和华东师范大学本科教学年度贡献奖。入职五年来的教学工作获学校和市级层面高度认可。","category":"荣誉奖项","sources":[{"name":"华东师大教育学部获奖公示","url":"https://ed.ecnu.edu.cn/b2/db/c45902a635611/page.htm","date":"2017-12-01"},{"name":"华东师大教育学部报道","url":"https://ed.ecnu.edu.cn/c4/f9/c45969a640249/page.htm","date":"2021-01-15"}],"source_count":2,"type":"event_cluster"},{"id":"evt-early-paper2017","date":"2017-10-01","title":"鲁力立、谭文静论文《关于我国预防医学类电视公益广告的现状调查与对策分析》发表于《","title_full":"鲁力立、谭文静论文《关于我国预防医学类电视公益广告的现状调查与对策分析》发表于《视听》2017年第10期","summary":"2017年，鲁力立与谭文静合作发表论文，调查分析我国预防医学类电视公益广告的现状与对策。延续跨学科研究风格，融合影视传播与公共卫生领域视角。","category":"学术成果","sources":[{"name":"华东师大教师主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-growth2016","date":"2016-06-02","title":"鲁力立指导本科生龙泳独立拍摄纪录片《成长》，","title_full":"鲁力立指导本科生龙泳独立拍摄纪录片《成长》，获首届汇创青春上海大学生文化创意作品展示一等奖，文汇报专题报道","summary":"2016年6月2日，文汇报以《用影视艺术启发教育者思考》为题专题报道鲁力立指导的纪录片《成长》。该片由2013级本科生龙泳在贵州山区支教期间独立拍摄，以客观视角记录城乡教育碰撞。获首届汇创青春一等奖，市教委领导点名表扬，上海地铁和公交展映。鲁力立表示:教育与影视艺术融合是教育技术领域的大胆尝试。","category":"壹幕工作室","sources":[{"name":"文汇报","url":"https://www.whb.cn/zhuzhan/xue/20160602/58957.html","date":"2016-06-02"},{"name":"华东师大官网","url":"https://www.ecnu.edu.cn/info/1095/6138.htm","date":"2016-06-02"},{"name":"上观新闻","url":"https://www.jfdaily.com/news/detail?id=19540","date":"2016-06-03"}],"source_count":3,"type":"event_cluster"},{"id":"evt-early-paper2015","date":"2015-12-01","title":"鲁力立论文《教育影视作品在高校教学实践中的应用研究》发表于《西部广播电视》201","title_full":"鲁力立论文《教育影视作品在高校教学实践中的应用研究》发表于《西部广播电视》2015年第24期","summary":"2015年底，鲁力立发表论文探讨教育影视作品在高校教学中的应用，这是她入职华东师大后第一篇教学研究论文。同年创立大学生影视工作室，将影视教学落实到实践中。","category":"学术成果","sources":[{"name":"百度学术","url":"https://xueshu.baidu.com/usercenter/paper/show?paperid=1ceee2e2fda4d0f5b9ada24b28d8830a","date":"2015-12-01"},{"name":"华东师大教师主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"}],"source_count":2,"type":"event_cluster"},{"id":"evt-yimu-founded2015","date":"2015-09-01","title":"鲁力立在华东师大创立知名教师引领的大学生工作室「壹幕工作室」，","title_full":"鲁力立在华东师大创立知名教师引领的大学生工作室「壹幕工作室」，提出「全时空」育人理念","summary":"鲁力立依托数字媒体综合实验中心（含大型演播室），在华东师范大学教育学部正式创立壹幕大学生影视工作室。提出教学、实践、科创与服务结合的四位一体「全时空」育人理念。工作室定位为教育主题影视创作，公众号名为「EMOVIE壹幕工作室」，「E」代表教育(Education)。","category":"壹幕工作室","sources":[{"name":"百度百科","url":"https://baike.baidu.com/item/%E9%B2%81%E5%8A%9B%E7%AB%8B/49789866","date":""},{"name":"华东师大教师主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp","date":""},{"name":"EMOVIE公众号：你所不知道的壹幕","url":"https://weixin.sogou.com/weixin?type=2&query=EMOVIE%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2019-01-01"}],"source_count":3,"type":"event_cluster"},{"id":"evt-early-studio2015","date":"2015-09-01","title":"鲁力立创立华东师大首个教师引领的大学生影视工作室——壹幕(e-movie)工作室","title_full":"鲁力立创立华东师大首个教师引领的大学生影视工作室——壹幕(e-movie)工作室","summary":"2015年，鲁力立所在的教育信息技术学系响应教育学部「五个100」号召，创立全校首个以教育为主题的影视工作室。这是壹幕工作室的前身和雏形，标志着从课堂教学延伸到实践育人的重要一步。2016年正式命名「壹幕」。","category":"壹幕工作室","sources":[{"name":"华东师大教育学部","url":"http://school.freekaoyan.com/sh/ecnu/daoshi/2021/01-15/16107196481321426.shtml"},{"name":"文汇报报道","url":"https://www.whb.cn/zhuzhan/xue/20160602/58957.html","date":"2016-06-02"}],"source_count":2,"type":"event_cluster"},{"id":"evt-grinews2014","date":"2014-01-01","title":"台湾草根影响力新视野「高手如云」栏目专访鲁力立","title_full":"台湾草根影响力新视野「高手如云」栏目专访鲁力立","summary":"台湾媒体「草根影响力新视野」在其「高手如云」栏目中发布鲁力立个人专访，全面介绍了她从中国传媒大学毕业后在华东师范大学的教学与研究工作。","category":"媒体报道","sources":[{"name":"草根影响力新视野（台湾）","url":"https://grinews.cn/news/%E9%B2%81%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-profile2014","date":"2014-01-01","title":"鲁力立入选台湾「草根影响力新视野」网站「高手如云」人物专栏(2014年1月)","title_full":"鲁力立入选台湾「草根影响力新视野」网站「高手如云」人物专栏(2014年1月)","summary":"2014年1月，面向两岸读者的「草根影响力新视野」将鲁力立纳入「高手如云」人物专栏，全面介绍教育背景(中传汉语言文学学士、广播电视艺术学硕士)、学术成果(2篇CSSCI、影评、专业报告)和多元身份(教师、网络写手、传媒从业者)。浏览量632次。","category":"媒体报道","sources":[{"name":"草根影响力新视野","url":"https://grinews.cn/news/%E9%AD%AF%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-join2012","date":"2012-09-01","title":"鲁力立中国传媒大学硕士毕业后入职华东师范大学教育信息技术学系，","title_full":"鲁力立中国传媒大学硕士毕业后入职华东师范大学教育信息技术学系，成为影视方向专业教师","summary":"2012年，鲁力立从中国传媒大学电视学院硕士毕业后，入职华东师范大学教育信息技术学系，开启「教育+数字媒体」跨学科融合职业生涯。入职前有省级卫视舞台美术设计两年经验、多部纪录片/晚会导演经历，学生时代连续创业3次。","category":"职业里程碑","sources":[{"name":"华东师大教师个人主页","url":"https://faculty.ecnu.edu.cn/_s8/lll1/main.psp"},{"name":"百度百科","url":"https://baike.baidu.com/item/%E9%B2%81%E5%8A%9B%E7%AB%8B/49789866"}],"source_count":2,"type":"event_cluster"},{"id":"evt-early-cssci2012b","date":"2012-06-01","title":"鲁力立第二篇CSSCI论文《融媒体·新技术·新资本·微世界——亚太新媒体高峰论坛","title_full":"鲁力立第二篇CSSCI论文《融媒体·新技术·新资本·微世界——亚太新媒体高峰论坛综述》发表于《现代传播》2012年第6期","summary":"2012年6月，鲁力立第二篇CSSCI论文发表于中国传媒大学学报《现代传播》。该文综述亚太新媒体高峰论坛，展现敏锐学术嗅觉和跨界视野。硕士在读期间已发表2篇CSSCI论文。","category":"学术成果","sources":[{"name":"草根影响力新视野","url":"https://grinews.cn/news/%E9%AD%AF%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-cssci2012a","date":"2012-03-01","title":"鲁力立首篇CSSCI论文《2011年中国电视论文述评》发表于《当代电影》2012","title_full":"鲁力立首篇CSSCI论文《2011年中国电视论文述评》发表于《当代电影》2012年第3期","summary":"2012年3月，鲁力立在中国传媒大学攻读硕士期间，首篇CSSCI级别学术论文《2011年中国电视论文述评》发表于权威期刊《当代电影》。这是她学术发表生涯的起点，展现出扎实的学术研究能力。","category":"学术成果","sources":[{"name":"草根影响力新视野","url":"https://grinews.cn/news/%E9%AD%AF%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-culture2012","date":"2012-01-01","title":"鲁力立在《中国文化报》发表影评《那些年，我们一起追过的女孩:","title_full":"鲁力立在《中国文化报》发表影评《那些年，我们一起追过的女孩:台风吹来清新回忆》(2012年1月)","summary":"2012年1月，鲁力立继《失恋33天》后再次在中国文化报发表影评，评析台湾青春电影《那些年，我们一起追过的女孩》。连续在国家级文化媒体发表评论，标志其影视批评能力获行业认可。","category":"早期经历","sources":[{"name":"草根影响力新视野","url":"https://grinews.cn/news/%E9%AD%AF%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-culture2011","date":"2011-11-01","title":"鲁力立在《中国文化报》发表影评《失恋33天:","title_full":"鲁力立在《中国文化报》发表影评《失恋33天:商业约会下的励志爱情》(2011年11月)","summary":"2011年11月，鲁力立在中国文化报发表影评文章《失恋33天:商业约会下的励志爱情》，这是她可追溯的最早公开署名文章。凭借中传影视专业训练，开启了影视评论与媒体写作之路。同期她以盛大文学签约网络写手身份活跃于创作圈。","category":"早期经历","sources":[{"name":"草根影响力新视野","url":"https://grinews.cn/news/%E9%AD%AF%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-early-cctv2010","date":"2011-03-01","title":"鲁力立为中国电视艺术委员会撰写《2010-2011中国电视艺术发展报告》，","title_full":"鲁力立为中国电视艺术委员会撰写《2010-2011中国电视艺术发展报告》，为中央电视台撰写《中央电视台娱乐节目改革建议》","summary":"2010-2011年，鲁力立在中国传媒大学攻读广播电视艺术学硕士期间，凭借专业能力受邀为中国电视艺术委员会撰写年度发展报告，并为中央电视台提供娱乐节目改革建议方案，展现了扎实的电视艺术理论和行业洞察力。","category":"早期经历","sources":[{"name":"草根影响力新视野","url":"https://grinews.cn/news/%E9%AD%AF%E5%8A%9B%E7%AB%8B/","date":"2014-01-01"}],"source_count":1,"type":"event_cluster"}],"total":65,"searched_at":"2026-06-03 12:00:00","events_total":62,"source_links_total":98,"stats":{"total":65}},"metaverse":{"topic":{"id":"metaverse","name":"教育元宇宙未来课堂","icon":"ἱ0","color":"#f093fb","filter_categories":["项目里程碑","媒体报道","荣誉奖项","基础设施"],"filter_entities":["教育元宇宙未来课堂","元宇宙","未来课堂"]},"results":[{"id":"evt-demo2026","date":"2026-05-22","title":"华东师大参展第二十三届上海教育博览会，「红色记忆」元宇宙思政德育课程与AI情绪疏","title_full":"华东师大参展第二十三届上海教育博览会，「红色记忆」元宇宙思政德育课程与AI情绪疏导系统两款互动体验装置亮相，来自智慧教育产教基地重点推选成果","summary":"2026年5月22日，第二十三届上海教育博览会在上海展览中心开幕，主题为\"积微成著 筑基未来\"。华东师大受邀设展，立足建校75周年与\"十五五\"开局之年。展区设置了\"红色记忆\"元宇宙思政德育课程和AI情绪疏导系统两款互动体验装置，均来自学校上海数字化教育装备工程技术研究中心智慧教育产教基地重点推选成果，直观呈现了学校在智慧教育、教育科技成果转化领域的前沿探索，吸引观众驻足体验。","category":"项目里程碑","sources":[{"name":"华东师范大学文明之窗（官方）","url":"https://wmzx.ecnu.edu.cn/a3/9f/c35428a762783/page.htm","date":"2026-05-29"}],"source_count":1,"type":"event_cluster"},{"id":"evt-library2025b","date":"2025-12-24","title":"「这堂课上课地点不在教室，来图书馆这里了！」——搜狐专题报道元宇宙未来学习空间","title_full":"「这堂课上课地点不在教室，来图书馆这里了！」——搜狐专题报道元宇宙未来学习空间","summary":"搜狐教育发布专题报道，介绍元宇宙未来学习空间自2025年芒种日启用后的常态化教学使用情况，展示了虚拟仿真、数智学伴、沉浸课堂等突破时空壁垒的智慧学习新生态。","category":"媒体报道","sources":[{"name":"搜狐教育","url":"https://www.sohu.com/a/968799353_121106832","date":"2025-12-24"}],"source_count":1,"type":"event_cluster"},{"id":"evt-edufair2025","date":"2025-12-02","title":"教育元宇宙未来课堂亮相第七届中国教育创新成果公益博览会","title_full":"教育元宇宙未来课堂亮相第七届中国教育创新成果公益博览会","summary":"鲁力立老师携「教育元宇宙未来课堂」创新成果亮相在珠海举行的第七届中国教育创新成果公益博览会（教博会），成为本届教博会的亮点之一，展示了项目在中小学教育中的广泛应用前景。","category":"项目里程碑","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/30/aa/c16571a733354/page.htm","date":"2025-12-02"}],"source_count":1,"type":"event_cluster"},{"id":"evt-yongde-visit","date":"2025-12-01","title":"闵行区教育学院附属永德学校师生参访华东师大元宇宙未来学习空间","title_full":"闵行区教育学院附属永德学校师生参访华东师大元宇宙未来学习空间","summary":"闵行区教育学院附属永德学校（现华东师范大学附属闵行永德学校）组织师生赴华东师大元宇宙未来学习空间参访，体验花狮科学课堂沉浸式教学。","category":"媒体报道","sources":[{"name":"华东师大附属闵行永德学校官网","url":"https://hsyd.mhedu.sh.cn/","date":"2025-12-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-media2025","date":"2025-11-12","title":"「这里有教育元宇宙的未来课堂」——上观新闻深入华东师大探访报道","title_full":"「这里有教育元宇宙的未来课堂」——上观新闻深入华东师大探访报道","summary":"上观新闻/上海观察发布深度报道「这里有教育元宇宙的未来课堂」，实地探访华东师大教育元宇宙未来课堂，揭示了融合虚拟仿真与数智教材、支持大规模探究式学习的创新教学模式。同日由腾讯新闻等平台广泛转载。","category":"媒体报道","sources":[{"name":"上观新闻（原发）","url":"https://www.jfdaily.com.cn/wx/detail.do?id=1017407","date":"2025-11-12"},{"name":"上观新闻（百家号）","url":"https://export.shobserver.com/baijiahao/html/1017407.html","date":"2025-11-12"},{"name":"腾讯新闻（转载）","url":"https://news.qq.com/rain/a/20251112A04YE500","date":"2025-11-12"}],"source_count":3,"type":"event_cluster"},{"id":"evt-ba5f45de","date":"2025-10-20","title":"迎国际好友 展附校之美——甘泉外国语学校姐妹校日本长野县塩尻中学学生代表来访交流","title_full":"迎国际好友 展附校之美——甘泉外国语学校姐妹校日本长野县塩尻中学学生代表来访交流","summary":"在上海市普陀区教育学院附属学校接待日本长野县塧尻中学师生代表团的交流活动中，负责“慧课程”体验环节「遨游元宇宙」内容展示，介绍全区首个教育元宇宙舱，展示AI互动体验、信息化教材、创新课堂模式等模块。","category":"项目里程碑","sources":[{"name":"上海市普陀区教育学院附属学校（微信公众号）","url":"https://mp.weixin.qq.com/s/kuHmwX_KIcBNXBd3E5pKbw"}],"keywords":["教育元宇宙舱","普教院附校","日本交流","国际化","元宇宙"]},{"id":"evt-unesco2025","date":"2025-10-18","title":"教育元宇宙未来课堂获联合国教科文组织「智慧学习生态系统优秀案例奖」","title_full":"教育元宇宙未来课堂获联合国教科文组织「智慧学习生态系统优秀案例奖」","summary":"2025年10月18日在上海举办的「2025数字化终身学习国际会议」上，鲁力立团队打造的「面向基础教育的教育元宇宙未来课堂」项目获评智慧学习生态系统优秀案例奖。会议由上海开放大学、联合国教科文组织终身学习研究所(UIL)、联合国教科文组织教育信息技术研究所(UNESCO IITE)联合主办，来自37个国家的200余位专家学者参会。实证研究显示：以红色思政课程为例，采用元宇宙课堂的学生知识掌握水平提升超过5倍，教学目标达成度达传统课堂16倍。","category":"荣誉奖项","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page1.htm","date":"2025-10-27"}],"source_count":1,"type":"event_cluster"},{"id":"evt-putuo-visit","date":"2025-09-01","title":"教育元宇宙未来课堂项目落地普陀区教育学院附属学校并应用教学","title_full":"教育元宇宙未来课堂项目落地普陀区教育学院附属学校并应用教学","summary":"鲁力立研发的「教育元宇宙未来课堂」项目落地普陀区教育学院附属学校，应用于实际教学场景。多所中小学来校参访交流，体验沉浸式教育元宇宙课堂教学模式。","category":"项目里程碑","sources":[{"name":"163网易新闻（科技成果转化门诊报道）","url":"https://www.163.com/dy/article/JDH36O4205568W0A.html","date":"2024-10-10"}],"source_count":1,"type":"event_cluster"},{"id":"evt-aied2025","date":"2025-07-10","title":"「智创赛道·育见未来」研讨会：华东师大工程中心产研基地及四大平台落地上海多媒体谷","title_full":"「智创赛道·育见未来」研讨会：华东师大工程中心产研基地及四大平台落地上海多媒体谷","summary":"2025年7月，「智创赛道·育见未来——生成式AI驱动教育新生态」研讨会在上海多媒体谷举办。华东师大上海数字化教育装备工程技术研究中心产研基地正式落地上海多媒体谷，同步揭牌四大平台：中国教育学会中小学信息技术教育专业委员会秘书处、华东师范大学人工智能教育研究(AIED)联盟、智慧教育·元创未来教育元宇宙产业联盟，为后续产教基地的建立奠定基础。","category":"基地建设","sources":[{"name":"静安区政府官网","url":"https://www.jingan.gov.cn/rmtzx/003001/20250711/24364b82-b244-49b3-a1e8-a22ac34a61bb.html","date":"2025-07-11"},{"name":"腾讯新闻","url":"https://news.qq.com/rain/a/20250710A08HGJ00","date":"2025-07-10"},{"name":"上观新闻","url":"https://www.shobserver.com/sgh/detail?id=1608952","date":"2025-07-11"},{"name":"网易新闻","url":"https://www.163.com/dy/article/K44P6G6M0514CCT2.html","date":"2025-07-10"},{"name":"澎湃新闻","url":"https://m.thepaper.cn/newsDetail_forward_31160975","date":"2025-07-10"}],"source_count":5,"type":"event_cluster"},{"id":"evt-guangming-daily","date":"2025-06-06","title":"教育元宇宙未来课堂项目获《光明日报》头版报道，成为教育数字化典型","title_full":"教育元宇宙未来课堂项目获《光明日报》头版报道，成为教育数字化典型","summary":"2025年6月，教育元宇宙未来课堂项目获得《光明日报》头版报道，成为教育数字化典型。该项目自2022年世界人工智能大会发布以来，已入选WAIC产业元宇宙创新案例集、上海教博会数字化标杆案例，2023年进驻中小学试点。","category":"媒体报道","sources":[{"name":"光明日报电子版","url":"https://epaper.gmw.cn/gmrb/html/2025-06/06/nw.D110000gmrb_20250606_1-01.htm"}],"source_count":1,"type":"event_cluster"},{"id":"evt-space2025","date":"2025-06-05","title":"华东师大普陀校区「元宇宙未来学习空间」正式启用","title_full":"华东师大普陀校区「元宇宙未来学习空间」正式启用","summary":"华东师大普陀校区图书馆内「元宇宙未来学习空间」正式点亮启用，是学校数智跃升计划的重要建设内容。该空间由信息化治理办公室、教育信息技术学系、未来学习发展中心和上海数字化教育装备工程技术研究中心等跨部门协同共建，承载着虚拟仿真、数智学伴、沉浸课堂等功能。","category":"基础设施","sources":[{"name":"华东师范大学官网","url":"https://www.ecnu.edu.cn/info/1094/69759.htm","date":"2025-06-05"},{"name":"上观新闻","url":"https://www.shobserver.com/sgh/detail?id=1585815","date":"2025-06-05"},{"name":"华禹教育网","url":"http://www.huaue.com/unews2025/202566103614.htm","date":"2025-06-06"},{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/b0/97/c16571a700567/page.htm","date":"2025-06-10"}],"source_count":4,"type":"event_cluster"},{"id":"evt-tencent2025","date":"2025-04-11","title":"鲁力立团队「教育元宇宙未来课堂」项目在华东师大×腾讯科技成果对接会上路演","title_full":"鲁力立团队「教育元宇宙未来课堂」项目在华东师大×腾讯科技成果对接会上路演","summary":"在「人工智能·走进腾讯」华东师范大学科技成果转化要素对接会上，鲁力立团队「教育元宇宙未来课堂」项目作为三大路演项目之一进行精彩展示。","category":"项目里程碑","sources":[{"name":"华东师大科技园","url":"https://kjy.ecnu.edu.cn/6b/20/c46020a682784/page.htm","date":"2025-04-11"}],"source_count":1,"type":"event_cluster"},{"id":"evt-classroom2024","date":"2024-11-15","title":"教育元宇宙未来智能教室项目公布：三规格实体教室设计","title_full":"教育元宇宙未来智能教室项目公布：三规格实体教室设计","summary":"鲁力立团队在华东师大科技成果展示平台公布「教育元宇宙未来智能教室」设计方案：小型接入舱（3-5人）适配自主探究型微课学习，中型空间站（15-20人）适配小班化教学，大型沉浸式课堂支持大规模探究式学习。融合CAVE、MR、AR、全息技术等多元虚拟现实技术。","category":"项目里程碑","sources":[{"name":"华东师大科技处","url":"https://kjc.ecnu.edu.cn/f2/14/c45109a651796/page.htm","date":"2024-11-15"},{"name":"华东师大科技园","url":"https://kjy.ecnu.edu.cn/38/34/c47067a669748/page.htm","date":"2025-01-26"}],"source_count":2,"type":"event_cluster"},{"id":"evt-clinic2024","date":"2024-10-08","title":"华东师大设立「科技成果转化门诊」，鲁力立带教育元宇宙项目「问诊」","title_full":"华东师大设立「科技成果转化门诊」，鲁力立带教育元宇宙项目「问诊」","summary":"华东师范大学在上海市科委、工信部火炬中心指导下设立「科技成果转化门诊」。教育信息技术学系高级工程师鲁力立携带「教育元宇宙未来课堂」项目资料参加首场门诊。2024年10月31日，光明日报头版以「门诊」为题进行专题报道，聚焦华东师大为科技成果从「书架」走向「货架」搭建的创新平台。同时回顾了该项目自2022年WAIC首发以来的发展历程。","category":"媒体报道","sources":[{"name":"光明日报头版","url":"https://epaper.gmw.cn/gmrb/html/2024-10/31/nw.D110000gmrb_20241031_4-01.htm","date":"2024-10-31"},{"name":"光明日报（镜像）","url":"https://epaper.neamco.com/gmrb/html/2024-10/31/nw.D110000gmrb_20241031_4-01.htm","date":"2024-10-31"},{"name":"华东师大官网转载","url":"https://www.ecnu.edu.cn/info/1094/67865.htm","date":"2024-10-31"},{"name":"上观新闻","url":"https://www.jfdaily.com/sgh/detail?id=1452390","date":"2024-10-31"},{"name":"搜狐新闻","url":"https://www.sohu.com/a/844239378_121687419","date":"2024-10-31"},{"name":"搜狐新闻（另）","url":"https://www.sohu.com/a/843553851_121687421","date":"2024-10-31"},{"name":"腾讯新闻","url":"https://news.qq.com/rain/a/20241008A07CFP00","date":"2024-10-08"},{"name":"今日头条","url":"https://www.toutiao.com/article/7423343526517211699/","date":"2024-10-08"},{"name":"新民晚报","url":"https://paper.xinmin.cn/html/xmwb/2024-10-08/3/194150.html","date":"2024-10-08"},{"name":"百度百家号","url":"https://baijiahao.baidu.com/s?id=1812339168634001628","date":"2024-10-08"}],"source_count":10,"type":"event_cluster"},{"id":"evt-3eade4c0","date":"2024-04-10","title":"【园区动态】华东师范大学科技成果转化项目要素对接会“人工智能·走进腾讯”专场活动","title_full":"【园区动态】华东师范大学科技成果转化项目要素对接会“人工智能·走进腾讯”专场活动成功举办","summary":"在华东师大科技园与腾讯云联合主办的“人工智能·走进腾讯”科技成果转化对接会上，鲁力立团队在项目路演环节展示“教育元宇宙未来课堂”项目，介绍融合CAVE、MR、全息交互等技术构建的“未来教室+课堂”体系，包含小型接入舱、中型空间站、大型实验室三类虚实融合教学空间。","category":"项目里程碑","sources":[{"name":"华东师范大学国家大学科技园（微信公众号）","url":"https://mp.weixin.qq.com/s/GGiYlWd7BIewfQMkjVJSFw"}],"keywords":["科技园","腾讯云","科技成果转化","教育元宇宙","CAVE","项目路演"]},{"id":"evt-intl2023","date":"2023-11-01","title":"教育元宇宙未来课堂吸引全球关注：日本、英国、澳洲、","title_full":"教育元宇宙未来课堂吸引全球关注：日本、英国、澳洲、俄罗斯及联合国教科文组织等代表团密集参访","summary":"2023年11月起，教育元宇宙未来课堂项目吸引了来自日本、英国、澳洲、俄罗斯以及联合国教科文组织等国际教育代表团密集前来参观交流，因前沿的未来构想与落地执行效果而获广泛关注。","category":"项目里程碑","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/","date":"2023-11-01"}],"source_count":1,"type":"event_cluster"},{"id":"evt-pilot2023","date":"2023-10-01","title":"教育元宇宙未来课堂启动中小学试点与推广，开启产学研深层联动","title_full":"教育元宇宙未来课堂启动中小学试点与推广，开启产学研深层联动","summary":"2023年10月起，教育元宇宙未来课堂项目正式进入中小学试点与推广阶段。华东师范大学第四附属中学自2020年起即与教育信息技术学系建立深度战略合作，联合开发覆盖物理、化学、生物、地理、道德与法治等全学科的数字教学资源库，为元宇宙课堂的中小学落地奠定基础。","category":"项目里程碑","sources":[{"name":"华东师大元宇宙未来学习空间启用报道","url":"https://www.ecnu.edu.cn/info/1094/69759.htm","date":"2025-06-05"},{"name":"上观新闻","url":"https://www.jfdaily.com/sgh/detail?id=1757960","date":"2026-05-30"}],"source_count":2,"type":"event_cluster"},{"id":"evt-paper2023","date":"2023-06-01","title":"鲁力立等发表元宇宙视角下非遗科普VR设计学术论文","title_full":"鲁力立等发表元宇宙视角下非遗科普VR设计学术论文","summary":"鲁力立、陆怡婕、许鑫在《图书馆论坛》2023年第43卷第2期发表论文「寓教于乐：元宇宙视角下口头文学类非遗的科普VR设计」，以上海非遗「沪谚」为例，从内容、场景与交互三个层面制定沪谚主题科普VR的设计方案，展示元宇宙技术在教育文化传承中的应用。","category":"学术成果","sources":[{"name":"图书馆论坛期刊","url":"http://tsglt.zslib.com.cn/CN/Y2023/V43/I2/141","date":"2023-06-01"},{"name":"百度学术","url":"https://xueshu.baidu.com/usercenter/paper/show?paperid=1d170eu07r1e04j07q1s0jj0a5310983","date":""},{"name":"万方数据","url":"https://d.wanfangdata.com.cn/periodical/tsglt202302016","date":""}],"source_count":3,"type":"event_cluster"},{"id":"evt-eduexpo2022","date":"2022-10-01","title":"2022上海教育博览会：教育元宇宙未来课堂入选上海教育数字化转型应用标杆案例","title_full":"2022上海教育博览会：教育元宇宙未来课堂入选上海教育数字化转型应用标杆案例","summary":"华东师范大学共有5项入选2022年上海教育博览会「上海教育数字化转型应用标杆案例」，教育元宇宙未来课堂为其中之一。该案例展示了教育元宇宙技术在中小学教育中的创新应用。","category":"荣誉奖项","sources":[{"name":"百度百科（记载）","url":"https://baike.baidu.com/item/鲁力立/49789866","date":""}],"source_count":1,"type":"event_cluster"},{"id":"evt-waic2022","date":"2022-09-02","title":"2022世界人工智能大会（WAIC）：教育元宇宙未来课堂项目首次发布","title_full":"2022世界人工智能大会（WAIC）：教育元宇宙未来课堂项目首次发布","summary":"鲁力立老师在2022年世界人工智能大会教育论坛上首次发布「教育元宇宙未来课堂」项目，分享了面向中小学的教育元宇宙科技空间场景解决方案，方案包含集成式沉浸技术舱体。项目同年入选WAIC《产业元宇宙创新应用案例集》。","category":"项目里程碑","sources":[{"name":"华东师范大学官网","url":"https://www.ecnu.edu.cn/info/1095/60876.htm","date":"2022-09-04"},{"name":"澎湃新闻","url":"https://m.thepaper.cn/baijiahao_19750319","date":"2022-09-03"},{"name":"今日头条","url":"https://www.toutiao.com/article/7139114771567411746/","date":"2022-09-03"},{"name":"上观新闻（回顾）","url":"https://www.jfdaily.com/sgh/detail?id=1452390","date":"2024-10-31"},{"name":"新民晚报（回顾）","url":"https://paper.xinmin.cn/html/xmwb/2024-10-08/3/194150.html","date":"2024-10-08"},{"name":"今日头条（回顾）","url":"https://www.toutiao.com/article/7423343526517211699/","date":"2024-10-08"}],"source_count":6,"type":"event_cluster"}],"total":20,"searched_at":"2026-06-06 15:30:00","events_total":15,"source_links_total":56,"stats":{"total":20}},"base":{"topic":{"id":"base","name":"智慧教育产教基地","icon":"ἾB","color":"#4facfe","filter_categories":["基地建设","重大事件"],"filter_entities":["智慧教育产教基地","产研基地","多媒体谷","彭浦镇"]},"results":[{"id":"evt-base-ouya-vr2026","date":"2026-06-08","title":"上海欧亚多媒体发展有限公司党支部联合上海多媒体谷园区联合党支部，","title_full":"上海欧亚多媒体发展有限公司党支部联合上海多媒体谷园区联合党支部，在华东师范大学智慧教育产教基地开展「树立和践行正确政绩观，重走长征路砺初心」主题党日活动。党员们佩戴专业VR设备，沉浸式体验湘江战役、遵义会议、飞夺泸定桥、翻越雪山草地等长征经典场景。欧亚多媒体党支部书记徐艳致辞。这是园区入驻企业利用基地VR/教育元宇宙设施开展党建活动的首次实践案例。","summary":"上海欧亚多媒体发展有限公司党支部联合上海多媒体谷园区联合党支部，在智慧教育产教基地开展长征VR沉浸式主题党日活动。活动主题为「树立和践行正确政绩观，重走长征路励初心」，利用基地VR设施还原长征经典场景，实现长征精神可感、可视、可悟。这是基地VR/教育元宇宙设施服务园区党建的首次实践。","category":"基地建设","sources":[{"name":"微信公众号「彭浦播报」","url":"https://mp.weixin.qq.com/s?__biz=MzA5OTM4ODI2Ng==&mid=2652235606&idx=2&sn=2774ceeeaa7e8c6a2b8eb755edb094be","date":"2026-06-08"},{"name":"供稿：上海多媒体谷党建办","url":"","date":"2026-06-08"}],"source_count":2,"type":"event_cluster"},{"id":"evt-base-rededu2025","date":"2026-05-18","title":"华东师范大学教育信息技术学系专业型硕士研究生党支部赴华东师范大学智慧教育产教基地","title_full":"华东师范大学教育信息技术学系专业型硕士研究生党支部赴华东师范大学智慧教育产教基地开展「循长征光影之途 感数智教育之脉」红色采风活动。活动中体验《跟着走·长征》VR虚拟仿真思政教学项目，参观未来教室、教育元宇宙未来课堂、智慧美育工坊等多个数字教育场景。同学们与鲁力立老师、深圳赛爱宁科技文化有限公司华东区域合伙人曹昌峰先生展开深入交流与讨论。","summary":"华东师范大学教育信息技术学系专业型硕士研究生党支部赴智慧教育产教基地开展红色采风活动。通过体验《跟着走·长征》VR思政教学项目，参观未来教室、教育元宇宙未来课堂等数字教育设施，将红色记忆、数字技术与未来教育相结合进行沉浸式学习。鲁力立老师作为交流嘉宾参与互动环节。","category":"基地建设","sources":[{"name":"微信公众号「E生向党」","url":"https://mp.weixin.qq.com/s/ymuj48vQLGI6N61YxX3ocg","date":"2026-05-18"}],"source_count":1,"type":"event_cluster","keywords":["红色采风","长征VR","产教基地","党建活动","教育元宇宙"]},{"id":"evt-0ed95d71","date":"2026-05-26","title":"艺术教育部赴智慧教育产教基地参观学习 沉浸式体验智慧美育前沿场景","title_full":"艺术教育部赴智慧教育产教基地参观学习 沉浸式体验智慧美育前沿场景","summary":"华东师范大学艺术教育部教师赴智慧教育产教基地参观学习，实地体验“未来教室”“教育元宇宙未来课堂”“智慧美育工坊”等场景，重点围绕数字技术与美育教学、艺术疗愈研究及师资培训的融合路径展开调研，为美育教师数字素养提升提供方向。","category":"基地建设","sources":[{"name":"ECNU艺教（微信公众号）","url":"https://mp.weixin.qq.com/s/Z3CygG8AB3FgfNxCUK6_CQ"}],"keywords":["智慧教育产教基地","艺术教育部","智慧美育","师资培训","数字素养"]},{"id":"evt-base-hspsy-record2026","date":"2026-05-21","title":"2026年5月18日，上海市网信办公布最新一批生成式人工智能服务备案信息。","title_full":"2026年5月18日，上海市网信办公布最新一批生成式人工智能服务备案信息。上海华东师大科教仪器有限公司的「HS-PSY华师心知大模型」凭借丰富数据积累、扎实技术基础与严格安全控制体系，顺利通过生成式人工智能服务备案审核，成为心理健康垂直领域代表性的合规AI服务案例。公司已实现「大模型备案+算法备案」双重认证。该模型是产教基地揭牌仪式上展示的「AI情绪疏导小屋」核心引擎。","summary":"2026年5月18日，上海市网信办公布最新一批备案信息，「HS-PSY华师心知大模型」通过国家生成式人工智能服务备案审核。该模型是产教基地揭牌仪式上「AI情绪疏导小屋」的核心引擎，面向学业压力、考试焦虑、同伴关系等校园场景。公司已实现大模型备案+算法备案双重认证，成为心理健康垂直领域的合规AI服务标杆案例。这是基地孵化产品取得的首个国家级合规资质，进一步夯实了基地「教育出题、高校解题、企业答题」的产业协同逻辑。","category":"基地建设","sources":[{"name":"微信公众号「上海华东师大科教仪器有限公司」","url":"https://mp.weixin.qq.com/s/DppJaFsO6RRQC6rH6zAAtA","date":"2026-05-21"},{"name":"上海华东师大科教仪器有限公司官网","url":"https://hskj.ecnu.edu.cn/","date":"2026-05-21"}],"source_count":2,"type":"event_cluster"},{"id":"evt-base-hskj-showcase2026","date":"2026-04-24","title":"华东师大科教仪器公司在智慧教育产教基地「身心健康」专区亮相，","title_full":"华东师大科教仪器公司在智慧教育产教基地「身心健康」专区亮相，展出AI心理情绪检测仪、SMART学习品质多维辅导系统、AI情绪疏导小屋三大产品，吸引40余所中小学代表到场体验。市场部心理培训师严雪珂接受看看新闻Knews专访，介绍自主研发的「华师心知大模型」具备懂理论、懂教育、懂现实三大特点。该活动标志着基地「四位一体」模式（自选超市+联合研发+投资融资+示范空间）首次面向学校用户的集中展示。","summary":"2026年4月18日揭牌当天，上海华东师大科教仪器有限公司作为「数智教育产教联盟」首批联盟企业，在基地「身心健康」专区展出AI心理情绪检测仪、SMART学习品质多维辅导系统、AI情绪疏导小屋三大产品。40余所中小学代表到场体验，看中产品可扫码加购。市场部心理培训师严雪珂接受看看新闻Knews专访。活动标志着基地「教育产品超市」模式首次面向学校用户的集中展示。","category":"基地建设","sources":[{"name":"微信公众号「华东师范大学产业」","url":"https://mp.weixin.qq.com/s/pGjh8ArmVu0PNL2sh-Tk0w","date":"2026-04-24"},{"name":"上海华东师大科教仪器有限公司官网","url":"https://hskj.ecnu.edu.cn/","date":"2026-04-24"}],"source_count":2,"type":"event_cluster"},{"id":"evt-base-unveil","date":"2026-04-18","title":"华东师大智慧教育产教基地正式揭牌：全国首个「教育出题×高校解题×企业答题」协同平","title_full":"华东师大智慧教育产教基地正式揭牌：全国首个「教育出题×高校解题×企业答题」协同平台","summary":"2026年4月18日，以「数据慧聚产教研政 智联重塑学习生态」为主题的华东师范大学智慧教育产教基地揭牌仪式在静安区多媒体谷盛大启幕。打造500平方米「未来学校」样板间与超1万平方米专属办公空间，聚焦教育元宇宙、VR/AR教学、超高清教育内容创制等前沿领域。首批26家企业获授牌为数智教育产教联盟企业，并受聘首批产研孵化专家委员（汇聚清华、北师大等顶尖高校），首批智慧教育重点孵化产品集中发布。全国首个深度融合「教育产品×商业地产×金融投资」的实体化、场景化平台。","category":"重大事件","sources":[{"name":"华东师大官网","url":"https://www.ecnu.edu.cn/info/1094/72008.htm","date":"2026-04-22"},{"name":"华东师大媒体关注","url":"https://www.ecnu.edu.cn/info/1426/71991.htm","date":"2026-04-20"},{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/8b/1e/c16571a756510/page.htm","date":"2026-04-18"},{"name":"教育信息技术学系","url":"http://www.deit.ecnu.edu.cn/8c/01/c26198a756737/page.htm","date":"2026-04-18"},{"name":"腾讯新闻/上海静安","url":"https://news.qq.com/rain/a/20260420A072MX00","date":"2026-04-20"},{"name":"东方网","url":"https://nw.eastday.com/bjzx/20260419/9fa526569e694aec9567d6c6ed893195.html","date":"2026-04-19"},{"name":"百度百家号/中国教育报","url":"https://baijiahao.baidu.com/s?id=1863071596965052798","date":"2026-04-21"},{"name":"同花顺财经","url":"https://stock.10jqka.com.cn/20260421/c676163353.shtml","date":"2026-04-21"},{"name":"科学网","url":"https://news.sciencenet.cn/htmlnews/2026/4/563400.shtm","date":"2026-04-21"},{"name":"网易新闻","url":"https://www.163.com/dy/article/KQVPCU150514CCT2.html","date":"2026-04-20"},{"name":"上观新闻","url":"https://sghexport.shobserver.com/html/baijiahao/2026/04/20/1737556.html","date":"2026-04-20"},{"name":"搜狐新闻","url":"https://www.sohu.com/a/1011678901_121956425","date":"2026-04-19"},{"name":"微信公号（彭浦镇）","url":"https://mp.weixin.qq.com/s?__biz=MzA5OTM4ODI2Ng==&mid=2652222838&idx=1&sn=49d597999c510241f44f47c5609efe42","date":"2026-04-18"},{"name":"东方网/163转载","url":"https://www.163.com/dy/article/KQT9JC3805503FCU.html","date":"2026-04-19"},{"name":"科学网","url":"https://paper.sciencenet.cn/htmlnews/2026/4/563400.shtm","date":"2026-04-21"},{"name":"东方网","url":"https://new.eastday.com/bjzx/20260419/9fa526569e694aec9567d6c6ed893195.html","date":"2026-04-19"},{"name":"看看新闻","url":"https://www.kankanews.com/detail/qMyEAXV9Ky8","date":"2026-04-20"},{"name":"世界教育者大会（微信公众号）","url":"https://mp.weixin.qq.com/s/FelCiDWLt_NYq8N8V2ykiw"},{"name":"大民堂（微信公众号）","url":"https://mp.weixin.qq.com/s/YT3FOn8Enmulq1uSIG3nIA"}],"source_count":19,"type":"event_cluster"},{"id":"evt-pengpu2026","date":"2026-02-05","title":"彭浦镇党委书记程凯带队调研华东师范大学智慧教育产教基地","title_full":"彭浦镇党委书记程凯带队调研华东师范大学智慧教育产教基地","summary":"2026年2月5日，静安区彭浦镇党委书记程凯、上海欧亚多媒体产业发展有限公司总经理徐艳带队莅临华东师范大学智慧教育产教基地实地调研，标志着双方在「智慧教育×超高清视听」领域的战略协作进入提速阶段。","category":"基地建设","sources":[{"name":"华东师大教育信息技术学系","url":"http://www.deit.ecnu.edu.cn/5a/0d/c26198a743949/page.htm","date":"2026-02-12"},{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/5a/10/c16571a743952/page.htm","date":"2026-02-12"}],"source_count":2,"type":"event_cluster"},{"id":"evt-base-established","date":"2026-01-28","title":"华东师范大学智慧教育产教基地正式成立，落地静安区多媒体谷","title_full":"华东师范大学智慧教育产教基地正式成立，落地静安区多媒体谷","summary":"自2022年起系统谋划、历经三年筹备与论证，经学校多部门反复论证，华东师范大学智慧教育产教基地于2026年1月在上海市静安区广中西路757号多媒体谷正式成立。由上海数字化教育装备工程技术研究中心牵头，在教育学部大力支持下，协同教育信息技术学系申报成立。基地得到华东师大科技处、技术转移中心专业指导，以及静安区彭浦镇政府的统筹支持。","category":"基地建设","sources":[{"name":"华东师大教育信息技术学系","url":"http://www.deit.ecnu.edu.cn/55/9a/c26200a742810/page.htm","date":"2026-01-29"},{"name":"华东师大教育信息技术学系（详细）","url":"http://www.deit.ecnu.edu.cn/55/58/c26198a742744/page.htm","date":"2026-01-28"}],"source_count":2,"type":"event_cluster"},{"id":"evt-aied2025","date":"2025-07-10","title":"「智创赛道·育见未来」研讨会：华东师大工程中心产研基地及四大平台落地上海多媒体谷","title_full":"「智创赛道·育见未来」研讨会：华东师大工程中心产研基地及四大平台落地上海多媒体谷","summary":"2025年7月，「智创赛道·育见未来——生成式AI驱动教育新生态」研讨会在上海多媒体谷举办。华东师大上海数字化教育装备工程技术研究中心产研基地正式落地上海多媒体谷，同步揭牌四大平台：中国教育学会中小学信息技术教育专业委员会秘书处、华东师范大学人工智能教育研究(AIED)联盟、智慧教育·元创未来教育元宇宙产业联盟，为后续产教基地的建立奠定基础。","category":"基地建设","sources":[{"name":"静安区政府官网","url":"https://www.jingan.gov.cn/rmtzx/003001/20250711/24364b82-b244-49b3-a1e8-a22ac34a61bb.html","date":"2025-07-11"},{"name":"腾讯新闻","url":"https://news.qq.com/rain/a/20250710A08HGJ00","date":"2025-07-10"},{"name":"上观新闻","url":"https://www.shobserver.com/sgh/detail?id=1608952","date":"2025-07-11"},{"name":"网易新闻","url":"https://www.163.com/dy/article/K44P6G6M0514CCT2.html","date":"2025-07-10"},{"name":"澎湃新闻","url":"https://m.thepaper.cn/newsDetail_forward_31160975","date":"2025-07-10"}],"source_count":5,"type":"event_cluster"}],"total":11,"searched_at":"2026-06-02 20:52:53","events_total":14,"source_links_total":56,"stats":{"total":11}},"related":{"topic":{"id":"related","name":"关联机构与学术动态","icon":"ὑ7","color":"#43e97b","filter_categories":["学术成果","基础设施","基地建设"],"filter_entities":["上海数字化教育装备工程技术研究中心","教育信息技术学系","许鑫","AIED"]},"results":[{"id":"evt-pengpu2026","date":"2026-02-05","title":"彭浦镇党委书记程凯带队调研华东师范大学智慧教育产教基地","title_full":"彭浦镇党委书记程凯带队调研华东师范大学智慧教育产教基地","summary":"2026年2月5日，静安区彭浦镇党委书记程凯、上海欧亚多媒体产业发展有限公司总经理徐艳带队莅临华东师范大学智慧教育产教基地实地调研，标志着双方在「智慧教育×超高清视听」领域的战略协作进入提速阶段。","category":"基地建设","sources":[{"name":"华东师大教育信息技术学系","url":"http://www.deit.ecnu.edu.cn/5a/0d/c26198a743949/page.htm","date":"2026-02-12"},{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/5a/10/c16571a743952/page.htm","date":"2026-02-12"}],"source_count":2,"type":"event_cluster"},{"id":"evt-base-established","date":"2026-01-28","title":"华东师范大学智慧教育产教基地正式成立，落地静安区多媒体谷","title_full":"华东师范大学智慧教育产教基地正式成立，落地静安区多媒体谷","summary":"自2022年起系统谋划、历经三年筹备与论证，经学校多部门反复论证，华东师范大学智慧教育产教基地于2026年1月在上海市静安区广中西路757号多媒体谷正式成立。由上海数字化教育装备工程技术研究中心牵头，在教育学部大力支持下，协同教育信息技术学系申报成立。基地得到华东师大科技处、技术转移中心专业指导，以及静安区彭浦镇政府的统筹支持。","category":"基地建设","sources":[{"name":"华东师大教育信息技术学系","url":"http://www.deit.ecnu.edu.cn/55/9a/c26200a742810/page.htm","date":"2026-01-29"},{"name":"华东师大教育信息技术学系（详细）","url":"http://www.deit.ecnu.edu.cn/55/58/c26198a742744/page.htm","date":"2026-01-28"}],"source_count":2,"type":"event_cluster"},{"id":"evt-aied2025","date":"2025-07-10","title":"「智创赛道·育见未来」研讨会：华东师大工程中心产研基地及四大平台落地上海多媒体谷","title_full":"「智创赛道·育见未来」研讨会：华东师大工程中心产研基地及四大平台落地上海多媒体谷","summary":"2025年7月，「智创赛道·育见未来——生成式AI驱动教育新生态」研讨会在上海多媒体谷举办。华东师大上海数字化教育装备工程技术研究中心产研基地正式落地上海多媒体谷，同步揭牌四大平台：中国教育学会中小学信息技术教育专业委员会秘书处、华东师范大学人工智能教育研究(AIED)联盟、智慧教育·元创未来教育元宇宙产业联盟，为后续产教基地的建立奠定基础。","category":"基地建设","sources":[{"name":"静安区政府官网","url":"https://www.jingan.gov.cn/rmtzx/003001/20250711/24364b82-b244-49b3-a1e8-a22ac34a61bb.html","date":"2025-07-11"},{"name":"腾讯新闻","url":"https://news.qq.com/rain/a/20250710A08HGJ00","date":"2025-07-10"},{"name":"上观新闻","url":"https://www.shobserver.com/sgh/detail?id=1608952","date":"2025-07-11"},{"name":"网易新闻","url":"https://www.163.com/dy/article/K44P6G6M0514CCT2.html","date":"2025-07-10"},{"name":"澎湃新闻","url":"https://m.thepaper.cn/newsDetail_forward_31160975","date":"2025-07-10"}],"source_count":5,"type":"event_cluster"},{"id":"evt-space2025","date":"2025-06-05","title":"华东师大普陀校区「元宇宙未来学习空间」正式启用","title_full":"华东师大普陀校区「元宇宙未来学习空间」正式启用","summary":"华东师大普陀校区图书馆内「元宇宙未来学习空间」正式点亮启用，是学校数智跃升计划的重要建设内容。该空间由信息化治理办公室、教育信息技术学系、未来学习发展中心和上海数字化教育装备工程技术研究中心等跨部门协同共建，承载着虚拟仿真、数智学伴、沉浸课堂等功能。","category":"基础设施","sources":[{"name":"华东师范大学官网","url":"https://www.ecnu.edu.cn/info/1094/69759.htm","date":"2025-06-05"},{"name":"上观新闻","url":"https://www.shobserver.com/sgh/detail?id=1585815","date":"2025-06-05"},{"name":"华禹教育网","url":"http://www.huaue.com/unews2025/202566103614.htm","date":"2025-06-06"},{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/b0/97/c16571a700567/page.htm","date":"2025-06-10"}],"source_count":4,"type":"event_cluster"},{"id":"evt-paper2023","date":"2023-06-01","title":"鲁力立等发表元宇宙视角下非遗科普VR设计学术论文","title_full":"鲁力立等发表元宇宙视角下非遗科普VR设计学术论文","summary":"鲁力立、陆怡婕、许鑫在《图书馆论坛》2023年第43卷第2期发表论文「寓教于乐：元宇宙视角下口头文学类非遗的科普VR设计」，以上海非遗「沪谚」为例，从内容、场景与交互三个层面制定沪谚主题科普VR的设计方案，展示元宇宙技术在教育文化传承中的应用。","category":"学术成果","sources":[{"name":"图书馆论坛期刊","url":"http://tsglt.zslib.com.cn/CN/Y2023/V43/I2/141","date":"2023-06-01"},{"name":"百度学术","url":"https://xueshu.baidu.com/usercenter/paper/show?paperid=1d170eu07r1e04j07q1s0jj0a5310983","date":""},{"name":"万方数据","url":"https://d.wanfangdata.com.cn/periodical/tsglt202302016","date":""}],"source_count":3,"type":"event_cluster"},{"id":"evt-media2025","date":"2025-11-12","title":"「这里有教育元宇宙的未来课堂」——上观新闻深入华东师大探访报道，腾讯等广泛转载","title_full":"「这里有教育元宇宙的未来课堂」——上观新闻深入华东师大探访报道，腾讯等广泛转载","summary":"上观新闻/上海观察发布深度报道「这里有教育元宇宙的未来课堂」，实地探访华东师大教育元宇宙未来课堂。同日由腾讯新闻等平台广泛转载。","category":"媒体报道","sources":[{"name":"上观新闻（原发）","url":"https://www.jfdaily.com/wx/detail.do?id=1017407","date":"2025-11-12"},{"name":"腾讯新闻（转载）","url":"https://news.qq.com/rain/a/20251112A04YE500","date":"2025-11-12"}],"source_count":2,"type":"event_cluster"},{"id":"evt-soft-2024","date":"2024-12-01","title":"2024年获4项软件著作权：小花狮启智化学、小花狮游世界、勇攀化学高峰、","title_full":"2024年获4项软件著作权：小花狮启智化学、小花狮游世界、勇攀化学高峰、消杀志愿者","summary":"2024年度获4项软件著作权登记：小花狮启智化学——中考化学实验互动学习平台（2024SR1081809）、小花狮游世界——面向跨学科案例分析解题模型的交互学习系统（2024SR0629566）、勇攀化学高峰V1.0（2024SR0382294）、消杀志愿者V1.0（2024SR0381940）。","category":"学术成果","type":"event_cluster"},{"id":"evt-pilot2023","date":"2023-10-01","title":"教育元宇宙未来课堂正式进入中小学试点阶段，与华东师大四附中深度合作","title_full":"教育元宇宙未来课堂正式进入中小学试点阶段，与华东师大四附中深度合作","summary":"2023年10月起，教育元宇宙未来课堂项目正式进入中小学试点与推广阶段。项目落地普陀区教育学院附属学校并应用在教学中。华东师范大学第四附属中学自2020年起即与教育信息技术学系建立深度战略合作。","category":"项目里程碑","sources":[{"name":"华东师大官网（未来学习空间回顾）","url":"https://www.ecnu.edu.cn/info/1094/69759.htm","date":"2025-06-05"}],"source_count":1,"type":"event_cluster"},{"id":"evt-eduexpo2022","date":"2022-09-24","title":"2022上海教育博览会：教育元宇宙未来课堂入选上海教育数字化转型应用标杆案例","title_full":"2022上海教育博览会：教育元宇宙未来课堂入选上海教育数字化转型应用标杆案例","summary":"华东师范大学共有5项入选2022年第十九届上海教育博览会「上海教育数字化转型应用标杆案例」，教育元宇宙未来课堂为其中之一。本届教博会以「数字新时代 教育大未来」为主题。","category":"荣誉奖项","sources":[{"name":"华东师大网信办","url":"https://wmzx.ecnu.edu.cn/96/ca/c35428a431818/page.htm","date":"2022-09-24"},{"name":"上观新闻（数字成果）","url":"https://www.shobserver.com/sgh/detail?id=869124","date":"2022-09-24"}],"source_count":2,"type":"event_cluster"},{"id":"evt-fund-398wan","date":"2020-12-01","title":"获批教育部专项经费398万元，主导全校唯一大型演播室三轮改造——从「电化教育」到","title_full":"获批教育部专项经费398万元，主导全校唯一大型演播室三轮改造——从「电化教育」到「教育数字媒体」再到「教育元宇宙」","summary":"2020年前瞻性提出「虚拟现实在线直播」为主体的关键技术升级方案，被教育部专家高度认可，获批398万专项经费。此前2017年、2018年连续获批50万改造经费，累计获批450万。2021年联合党委宣传部落成校融媒体中心，支撑教改获国家级特等奖在内的100+成果。","category":"项目里程碑","type":"event_cluster"},{"id":"evt-fuguijia2026","date":"2026-05-12","title":"基于与树人托管达成的教育场景成熟战略合作经验，富桂通此次携手华东师范大学，","title_full":"基于与树人托管达成的教育场景成熟战略合作经验，富桂通此次携手华东师范大学，是教育领域布局步伐的持续深化，进一步完善「高校科研+企业制造+场景应用」的产教融合生态。富桂通作为黑马企业已入驻智慧教育产教基地。","summary":"2026年5月12日，富桂通与华东师范大学达成战略合作，进一步完善「高校科研+企业制造+场景应用」的产教融合生态。富桂通作为智慧教育产教基地入驻企业，与鲁力立团队及工程中心在智慧教育产品孵化、场景落地等方面开展深度合作。","category":"基地建设","sources":[{"name":"网易新闻","url":"https://www.163.com/dy/article/KSNOURIH0556CBLT.html","date":"2026-05-12"}],"source_count":1,"type":"event_cluster"},{"id":"corp-yishengwanmu2026","date":"2026-04-18","title":"壹生万幕（上海）教育科技有限公司，法定代表人鲁力立，持股90%，","title_full":"壹生万幕（上海）教育科技有限公司，法定代表人鲁力立，持股90%，是华东师范大学智慧教育产教基地首批重点孵化企业之一。在2026年4月18日基地揭牌仪式上获颁牌匾。公司聚焦教育影视内容创制与AIGC教育应用，与壹幕工作室形成「学术+产业」双轮驱动格局。","summary":"壹生万幕（上海）教育科技有限公司是鲁力立创办的产教融合企业，作为华东师范大学智慧教育产教基地首批重点孵化企业，在2026年4月18日揭牌仪式上正式获颁牌匾，标志着鲁力立团队的成果从科研走向产业化落地。","category":"创业动态","sources":[{"name":"爱企查","url":"https://aiqicha.baidu.com/human_lTM-TogKuTw7EhRJL5zQ**9ekic2Lq6WgH1Oa4mlwnn","date":"2026-04-18"}],"source_count":1,"type":"article"},{"id":"article-jingjiribao2026","date":"2026-04-20","title":"2026年4月20日，《经济日报》报道华东师范大学智慧教育产教基地揭牌，","title_full":"2026年4月20日，《经济日报》报道华东师范大学智慧教育产教基地揭牌，打造全国首个深度融合「教育产品×商业地产×金融投资」的实体化、场景化、市场化教育成果交易与发展生态平台。报道未提及鲁力立姓名，但确认基地首批孵化产品包含「教育元宇宙未来课堂」。","summary":"2026年4月20日，《经济日报》报道华东师范大学智慧教育产教基地揭牌。基地打造500㎡「未来学校」样板间，汇聚数十家头部教育企业，首批孵化产品包括鲁力立团队的「教育元宇宙未来课堂」。","category":"基地建设","sources":[{"name":"经济日报","url":"https://www.jingjiribao.cn/static/detail.jsp?id=651186","date":"2026-04-20"}],"source_count":1,"type":"article"}],"total":13,"searched_at":"2026-06-02 20:52:53","events_total":14,"source_links_total":56},"honors":{"topic":{"id":"honors","name":"荣誉与成果","icon":"Ἴ6","color":"#fa709a","filter_categories":["荣誉奖项","学术成果"],"filter_entities":["联合国教科文组织","标杆案例","产业元宇宙创新应用案例集","教博会"]},"results":[{"id":"evt-edufair2025","date":"2025-12-02","title":"教育元宇宙未来课堂亮相第七届中国教育创新成果公益博览会","title_full":"教育元宇宙未来课堂亮相第七届中国教育创新成果公益博览会","summary":"鲁力立老师携「教育元宇宙未来课堂」创新成果亮相在珠海举行的第七届中国教育创新成果公益博览会（教博会），成为本届教博会的亮点之一，展示了项目在中小学教育中的广泛应用前景。","category":"项目里程碑","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/30/aa/c16571a733354/page.htm","date":"2025-12-02"}],"source_count":1,"type":"event_cluster"},{"id":"evt-unesco2025","date":"2025-10-18","title":"教育元宇宙未来课堂获联合国教科文组织「智慧学习生态系统优秀案例奖」","title_full":"教育元宇宙未来课堂获联合国教科文组织「智慧学习生态系统优秀案例奖」","summary":"2025年10月18日在上海举办的「2025数字化终身学习国际会议」上，鲁力立团队打造的「面向基础教育的教育元宇宙未来课堂」项目获评智慧学习生态系统优秀案例奖。会议由上海开放大学、联合国教科文组织终身学习研究所(UIL)、联合国教科文组织教育信息技术研究所(UNESCO IITE)联合主办，来自37个国家的200余位专家学者参会。实证研究显示：以红色思政课程为例，采用元宇宙课堂的学生知识掌握水平提升超过5倍，教学目标达成度达传统课堂16倍。","category":"荣誉奖项","sources":[{"name":"工程中心官网","url":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page1.htm","date":"2025-10-27"}],"source_count":1,"type":"event_cluster"},{"id":"evt-paper2023","date":"2023-06-01","title":"鲁力立等发表元宇宙视角下非遗科普VR设计学术论文","title_full":"鲁力立等发表元宇宙视角下非遗科普VR设计学术论文","summary":"鲁力立、陆怡婕、许鑫在《图书馆论坛》2023年第43卷第2期发表论文「寓教于乐：元宇宙视角下口头文学类非遗的科普VR设计」，以上海非遗「沪谚」为例，从内容、场景与交互三个层面制定沪谚主题科普VR的设计方案，展示元宇宙技术在教育文化传承中的应用。","category":"学术成果","sources":[{"name":"图书馆论坛期刊","url":"http://tsglt.zslib.com.cn/CN/Y2023/V43/I2/141","date":"2023-06-01"},{"name":"百度学术","url":"https://xueshu.baidu.com/usercenter/paper/show?paperid=1d170eu07r1e04j07q1s0jj0a5310983","date":""},{"name":"万方数据","url":"https://d.wanfangdata.com.cn/periodical/tsglt202302016","date":""}],"source_count":3,"type":"event_cluster"},{"id":"evt-eduexpo2022","date":"2022-10-01","title":"2022上海教育博览会：教育元宇宙未来课堂入选上海教育数字化转型应用标杆案例","title_full":"2022上海教育博览会：教育元宇宙未来课堂入选上海教育数字化转型应用标杆案例","summary":"华东师范大学共有5项入选2022年上海教育博览会「上海教育数字化转型应用标杆案例」，教育元宇宙未来课堂为其中之一。该案例展示了教育元宇宙技术在中小学教育中的创新应用。","category":"荣誉奖项","sources":[{"name":"百度百科（记载）","url":"https://baike.baidu.com/item/鲁力立/49789866","date":""}],"source_count":1,"type":"event_cluster"},{"id":"evt-waic2022","date":"2022-09-02","title":"2022世界人工智能大会（WAIC）：教育元宇宙未来课堂项目首次发布","title_full":"2022世界人工智能大会（WAIC）：教育元宇宙未来课堂项目首次发布","summary":"鲁力立老师在2022年世界人工智能大会教育论坛上首次发布「教育元宇宙未来课堂」项目，分享了面向中小学的教育元宇宙科技空间场景解决方案，方案包含集成式沉浸技术舱体。项目同年入选WAIC《产业元宇宙创新应用案例集》。","category":"项目里程碑","sources":[{"name":"华东师范大学官网","url":"https://www.ecnu.edu.cn/info/1095/60876.htm","date":"2022-09-04"},{"name":"澎湃新闻","url":"https://m.thepaper.cn/baijiahao_19750319","date":"2022-09-03"},{"name":"今日头条","url":"https://www.toutiao.com/article/7139114771567411746/","date":"2022-09-03"},{"name":"上观新闻（回顾）","url":"https://www.jfdaily.com/sgh/detail?id=1452390","date":"2024-10-31"},{"name":"新民晚报（回顾）","url":"https://paper.xinmin.cn/html/xmwb/2024-10-08/3/194150.html","date":"2024-10-08"},{"name":"今日头条（回顾）","url":"https://www.toutiao.com/article/7423343526517211699/","date":"2024-10-08"}],"source_count":6,"type":"event_cluster"},{"id":"award-unesco2025","date":"2025-10-27","title":"2025年10月27日，在「2025数字化终身学习国际会议」上，","title_full":"2025年10月27日，在「2025数字化终身学习国际会议」上，鲁力立带领团队打造的「面向基础教育的教育元宇宙未来课堂」项目获评「智慧学习生态系统优秀案例奖」。该奖项由联合国教科文组织终身学习研究所（UIL）和联合国教科文组织教育信息技术研究所（UNESCO IITE）联合颁发，标志着项目获得国际权威认可。","summary":"2025年10月，鲁力立带领团队打造的「面向基础教育的教育元宇宙未来课堂」项目，在联合国教科文组织支持的「2025数字化终身学习国际会议」上获评「智慧学习生态系统优秀案例奖」，这是该项目获得的最高国际认可。","category":"荣誉奖项","sources":[{"name":"华东师范大学上海数字化教育装备工程技术研究中心官网","url":"https://ercdee.ecnu.edu.cn/07/0f/c16571a722703/page.htm","date":"2025-10-27"}],"source_count":1,"type":"article"}],"total":6,"searched_at":"2026-06-02 20:52:53","events_total":14,"source_links_total":56},"yimu":{"topic":{"id":"yimu","name":"壹幕工作室","icon":"🎬","color":"#9C27B0"},"stats":{"total":197,"award_national":30,"award_provincial":67,"award_total":119,"project_total":36,"project_national":10,"honor_total":16,"copyright_total":12},"results":[{"id":"evt-b57fd51c","date":"2023-05-23","title":"【研究进展】团队AIGC人机协同研究成果参会第三届短视频创研国际会议","title_full":"【研究进展】团队AIGC人机协同研究成果参会第三届短视频创研国际会议","summary":"壹幕工作室指导老师鲁力立、团队成员刘子衿受邀参加第三届短视频创研国际会议（上海师范大学），在“产业生态与协同进化”分论坛分享《从技术路径到能力图谱：AIGC驱动下影视创作的人机协同螺旋模型研究》阶段性成果，以《信息安全科普动画》系列AIGC创作实践为案例。","category":"学术会议","sources":[{"name":"EMOVIE壹幕工作室（微信公众号）","url":"https://mp.weixin.qq.com/s/zw1xT5D3N732DwOs2_oSGg"}],"keywords":["AIGC","人机协同","短视频创研国际会议","影视创作","螺旋模型"]},{"year":"","time":"","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"“传统”带你玩游戏——“双减”背景下针对小学生的中华传统游戏科普交互系统开发","leader":"吴卓佳","members":"吴卓佳、黄尔纯、孟子楠、吴诚薇、雷奕欣、於津因","proj_id":"2021PY—166","note":""},{"year":"","time":"","level":"","grade":"","type":"project","category":"科创项目","project":"面对初中生的教育元宇宙未来课题德育课程设计与应用","leader":"杨怀稚","members":"杨怀稚、吴梦","proj_id":"","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"申万宏源奖教金奖","activity":"上海市教育发展基金会","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"“知行杯”上海市大学生社会实践项目大赛","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀共产党员","activity":"2018-2019年度华东师范大学教育学部","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"华东师范大学第五届本科生创新创业训练论坛","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"2019“iTeach”全国大学生数字化教育应用创新大赛","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"2020“iTeach”全国大学生数字化教育应用创新大赛","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"第八届全国高校数字艺术设计大赛","note":""},{"year":"","time":"","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"2020年度华东师范大学创新创业.","note":""},{"year":"2015","time":"2015","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"大学生礼仪微信公众平台的设计与开发","leader":"董巾玮","members":"董巾玮","proj_id":"","note":""},{"year":"2015","time":"2015","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"全媒体背景下大学生优秀成果数字化展示窗口建设","leader":"石睿、王巍等","members":"石睿、王巍等","proj_id":"","note":""},{"year":"2015","time":"2015","level":"","grade":"","type":"practice","category":"社会实践","project":"新媒体背景下第三方o2o服务平台发展用户群策略分析","leader":"","members":"石睿","activity":"","note":""},{"year":"2016","time":"2016","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"基于微信平台开展的碎片化视频教学方法的应用研究——以C++教学为例","leader":"于佳卉","members":"于佳卉 李如愿","proj_id":"","note":""},{"year":"2016","time":"2016","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"第一届“汇创青春”上海大学生文化创意作品展示活动","note":""},{"year":"2017","time":"2017","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"基于上海物质文化遗产石库门的主题历史纪录片创作和分析","leader":"吴兵可","members":"吴兵可 袁宇同 张江翔 龙泳 李颖佳 蒋梦玮","proj_id":"","note":""},{"year":"2017","time":"2017","level":"省部级","grade":"市创","type":"project","category":"科创项目","project":"基于3D打印技术的定格动画教学视频开发──以有关中华传统文化故事动画为例","leader":"周雨萌","members":"周雨萌 任子佳 宋婷袅","proj_id":"","note":""},{"year":"2017","time":"2017","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"基于课程的Premiere影视软件实用教学视频制作","leader":"张红燕","members":"张红燕","proj_id":"","note":""},{"year":"2017","time":"2017","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"基于高校创客空间3D打印的微信公众平台","leader":"宋金阳","members":"宋金阳","proj_id":"","note":""},{"year":"2017","time":"2017","level":"","grade":"","type":"honor","category":"教师荣誉","project":"年度贡献奖","activity":"2017年度华东师范大学本科教学","note":""},{"year":"2018","time":"2018","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"面向大学生的中华礼仪系列教育短片创作（仪仪有礼）","leader":"陈真源","members":"陈真源，张琦慧，周子皓，汤夏颖","proj_id":"","note":""},{"year":"2018","time":"2018","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"摄像技艺的全媒体教学资源开发","leader":"阴翊文","members":"阴翊文，周嘉翔，江思慧，李迪康，梁悦","proj_id":"","note":""},{"year":"2018","time":"2018","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"基于LBS技术和游戏化设计理念的校园配送app开发","leader":"彭丽","members":"彭丽  汪晓婷  贺子君  李若晨  邱龙辉  林凌","proj_id":"","note":""},{"year":"2018","time":"2018","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"基于中国大学生课外自主学习现状的纪录片创作》代表全系参加2018年度全校优秀教展示活动","leader":"任子佳","members":"任子佳 吴兵可 陈真源 张琦慧 周嘉翔","proj_id":"","note":""},{"year":"2018","time":"2018","level":"","grade":"","type":"practice","category":"社会实践","project":"基于中国大学生课外自主学习现状的纪录片创作》","leader":"","members":"","activity":"","note":""},{"year":"2018","time":"2018","level":"","grade":"","type":"practice","category":"社会实践","project":"面向大学生的中华礼仪系列教育短片创作（仪仪有礼）","leader":"","members":"","activity":"","note":""},{"year":"2018","time":"2018","level":"","grade":"","type":"practice","category":"社会实践","project":"关于支教主题纪录片的创作与社会调研","leader":"","members":"","activity":"","note":""},{"year":"2018","time":"2018","level":"","grade":"","type":"practice","category":"社会实践","project":"影子校长","leader":"","members":"","activity":"","note":""},{"year":"2018","time":"2018","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"华东师范大学主题社会实践","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"《衡水中学》同名纪录片创作","leader":"张晓琳","members":"张晓琳 张天渝 张娅妮","proj_id":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"面向中国学龄前儿童的性教育系列动画IP开发","leader":"夏峥","members":"夏峥 张天渝 王晓荣 张琦慧 陈真源","proj_id":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"面向教育学子教育的校园谈话节目创作","leader":"拜英财","members":"拜英财 赖慧 袁嘉敏 张晓琳 王晓荣","proj_id":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"针对当代大学生的海派传统文化移动端新媒体传播-以海派旗袍为例","leader":"王亦冰","members":"王亦冰 梁晓颖 郑珊珊 梁悦 江思慧 李典康","proj_id":"","note":""},{"year":"2019","time":"2019","level":"","grade":"","type":"practice","category":"社会实践","project":"面向教育学子教育的校园谈话节目创作","leader":"","members":"","activity":"","note":""},{"year":"2019","time":"2019","level":"","grade":"","type":"practice","category":"社会实践","project":"《衡水中学》同名纪录片创作","leader":"","members":"","activity":"","note":""},{"year":"2019","time":"2019","level":"","grade":"","type":"practice","category":"社会实践","project":"针对当代大学生的海派传统文化移动端新媒体传播-以海派旗袍为例","leader":"","members":"","activity":"","note":""},{"year":"2019","time":"2019","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"首届全国大学生创意融媒体作品大赛","note":""},{"year":"2019","time":"2019","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"上海市大学生计算机应用能力大赛","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"针对初中生的反网络暴力系列宣传动画短片","leader":"林易、梁儒铭、宛宁静、於津因","members":"林易、梁儒铭、宛宁静、於津因","proj_id":"","note":""},{"year":"2020","time":"2020","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"针对高中生影视素养培育课程的全媒体教学资源建设","leader":"袁嘉敏","members":"袁嘉敏，赖慧，金豪，庄子诺，盛洁","proj_id":"","note":""},{"year":"2020","time":"2020","level":"","grade":"","type":"practice","category":"社会实践","project":"四史-教育信息技术学史","leader":"","members":"邓宇菲","activity":"","note":""},{"year":"2020","time":"2020","level":"","grade":"","type":"practice","category":"社会实践","project":"针对初中生的反网络暴力系列宣传动画短片","leader":"","members":"林易、梁儒铭、宛宁静、於津因","activity":"","note":""},{"year":"2020","time":"2020","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"华东师范大学主题社会实践","note":""},{"year":"2021","time":"2021","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"针对大学生的非物质文化遗产沪谚在线交互式科普","leader":"陆怡婕","members":"陆怡婕","proj_id":"","note":""},{"year":"2021","time":"2021","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"“四史”学习教育背景下，面向大学生的中国教育技术发展史科普交互系统","leader":"邓宇菲","members":"邓宇菲","proj_id":"","note":""},{"year":"2021","time":"2021","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"科研成果可视化的全媒体展示路径探究","leader":"金豪、宛宁静、张丽洁、李淑馨、刘丹妮","members":"金豪、宛宁静、张丽洁、李淑馨、刘丹妮","proj_id":"","note":""},{"year":"2021","time":"2021","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"针对小学低年级的汉字字形演变移动端教学资源开发","leader":"周昕祺","members":"周昕祺","proj_id":"","note":""},{"year":"2021","time":"2021","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"第九届全国高校数字艺术设计大赛","note":""},{"year":"2022","time":"2022","level":"省部级","grade":"市创","type":"project","category":"科创项目","project":"翻转课堂模式下针对摄像技艺的教学资源设计与开发——摄像大师2.0","leader":"孟子楠","members":"孟子楠","proj_id":"","note":""},{"year":"2022","time":"2022","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"“传统”带你玩游戏——“双减”背景下针对小学生的中华传统游戏科普交互系统开发","leader":"吴卓佳","members":"吴卓佳","proj_id":"","note":""},{"year":"2022","time":"2022","level":"省部级","grade":"市创","type":"project","category":"科创项目","project":"基于教育元宇宙科技空间的\n中小学科学电影创作","leader":"肖经晶","members":"肖经晶、曹钰婷、徐萌翊、蔡灵希","proj_id":"2022PY-176","note":""},{"year":"2022","time":"2022","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"针对疫情防护知识的微课程\n资源设计与开发","leader":"朱越","members":"朱越、蔡灵希、曹钰婷、窦雨萧、马景怡","proj_id":"2022PY—168","note":""},{"year":"2022","time":"2022","level":"","grade":"","type":"honor","category":"教师荣誉","project":"优秀指导教师","activity":"首届“致敬中华优秀传统文化”项目学习活动","note":""},{"year":"2023","time":"2023","level":"省部级","grade":"市创","type":"project","category":"科创项目","project":"基于教育元宇宙科技空间的\n中小学科学电影创作","leader":"肖经晶","members":"肖经晶","proj_id":"","note":""},{"year":"2023","time":"2023","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"针对疫情防护知识的微课程\n资源设计与开发","leader":"朱越","members":"朱越","proj_id":"","note":""},{"year":"2023","time":"2023","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"基于美育的上海高中影视教育现状调研和校本课程建设—以吴迅中学为例","leader":"徐萌翊","members":"徐萌翊","proj_id":"","note":""},{"year":"2023","time":"2023","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"数字传承与在线传播：海派口头文学类非遗的科普游戏设计与开发——以沪谚为例","leader":"曹钰婷","members":"曹钰婷","proj_id":"","note":""},{"year":"2023","time":"2023","level":"","grade":"","type":"practice","category":"社会实践","project":"“花狮游·启航”校园导览文化传承计划","leader":"","members":"杜常晴","activity":"","note":""},{"year":"2023","time":"2023","level":"","grade":"","type":"practice","category":"社会实践","project":"“花狮游·启航”校园导览与文化传承计划","leader":"杜常晴","members":"杜常晴、李瑞佳10214507406","activity":"2023年暑期社会实践","note":""},{"year":"2024","time":"2024","level":"国家级","grade":"国创","type":"project","category":"科创项目","project":"基于AIGC的数字媒体创作全流程模式研究——以《大化西游》为例","leader":"张新烨","members":"张新烨、程馨悦、邹昭辉、杨怀稚","proj_id":"2024PY-187","note":""},{"year":"2024","time":"2024","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"以知识元为核心的定制化考研智适应学习系统","leader":"邹昭辉","members":"邹昭辉、程馨悦","proj_id":"2024PY-231","note":""},{"year":"2024","time":"2024","level":"","grade":"","type":"practice","category":"社会实践","project":"针对中学生的心理健康科普动画片的创作","leader":"王中焜","members":"王中焜、程馨悦10224507011","activity":"2025年寒假社会实践","note":""},{"year":"2025","time":"2025","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"智绘教育：AIGC赋能教育影视之《信息安全科普动画》","leader":"刘子衿","members":"刘子衿、顾梦茹、陈力帆、张新烨、程馨悦","proj_id":"2025PY-248","note":""},{"year":"2025","time":"2025","level":"省部级","grade":"市创","type":"project","category":"科创项目","project":"人人可教的AI：面向一线教师的AI科普教学参考书","leader":"苏鑫悦","members":"顾梦茹、郝明康、刘子衿、王中焜、苏鑫悦","proj_id":"2025PY-256","note":""},{"year":"2025","time":"2025","level":"校级","grade":"校创","type":"project","category":"科创项目","project":"AIGC驱动：青少\n年心理健康教育\n课程之基于动画\n形式的创新研究","leader":"王中焜","members":"王中焜、郝明康、张新烨、程馨悦、琚泽月","proj_id":"2025PY—256","note":""},{"year":"2016","time":"2016","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2016年（第9届）中国大学生计算机设计大赛","project":"《沪语情境系列动画》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第二届“iTeach”全国大学生数字化教育应用创新大赛","project":"《面向中国学龄前儿童的性教育系列动画短片》（《好奇的琪琪》）","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第二届“iTeach”全国大学生数字化教育应用创新大赛","project":"《摄像技艺的全媒体教学资源开发》（《“摄像大师”系列课外自主学习资源》）","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"国家级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第二届“iTeach”全国大学生数字化教育应用创新大赛","project":"面向大学生的中华礼仪系列教育短片《仪仪有礼》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"国家级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第二届“iTeach”全国大学生数字化教育应用创新大赛","project":"《中北萌新攻略——华东师范大学新生指南视频》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"国家级","grade":"优秀作品","type":"award","category":"竞赛获奖","competition":"第三届“美丽乡村”国际微电影艺术节","project":"《儿子丢了》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"优秀纪录片奖","type":"award","category":"竞赛获奖","competition":"第三届西湖青年纪录片论坛","project":"《衡水中学》同名纪录片创作","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019年（第12届）中国大学生计算机设计大赛","project":"《摄像技艺的全媒体教学资源开发》（《“摄像大师”系列课外自主学习资源》）","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2019年（第12届）中国大学生计算机设计大赛","project":"《面向中国学龄前儿童的性教育系列微课》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2019年“iteach”全国大学生数字化教育应用创新大赛","project":"《针对当代大学生的海派传统文化移动端新媒体传播-以海派旗袍为例》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019年“iteach”全国大学生数字化教育应用创新大赛","project":"《面向教育学子教育的校园谈话节目创作》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"入围奖","type":"award","category":"竞赛获奖","competition":"第九届中国纪录片学院奖","project":"《衡水中学》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"国家级","grade":"入围奖","type":"award","category":"竞赛获奖","competition":"第四届“青春影像”全国大中学生原创视频作品大赛","project":"《大学问：大学课外学什么》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"一等奖（全校2个）","type":"award","category":"竞赛获奖","competition":"2020年（第13届）中国大学生计算机设计大赛","project":"《中华礼仪教育交互学习系统》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2020“iTeach”全国大学生数字化教育应用创新大赛","project":"《中华礼仪教育交互学习系统》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2020“iTeach”全国大学生数字化教育应用创新大赛","project":"《针对中学生影视素养培育的嵌入式视频交互网站设计——中学生校园电视台成长指南》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2020“iTeach”全国大学生数字化教育应用创新大赛","project":"《好奇的琪琪》交互绘本","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2020“iTeach”全国大学生数字化教育应用创新大赛","project":"《针对初中生的反校园网络暴力系列宣传教育短片》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2020“iTeach”全国大学生数字化教育应用创新大赛","project":"《针对大学生的非物质文化遗产沪谚在线交互式科普》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2020“iTeach”全国大学生数字化教育应用创新大赛","project":"《“字”古以来》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛","project":"《针对中学生影视素养培育的嵌入式视频交互网站设计——中学生校园电视台成长指南》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛","project":"《好奇的琪琪》交互绘本","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛","project":"《“字”古以来》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"最佳创意奖","type":"award","category":"竞赛获奖","competition":"首届全国大学生创意融媒体作品大赛","project":"《大学问：大学课外学什么》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"入围国赛作品","type":"award","category":"竞赛获奖","competition":"“腾讯视频创意大赛”","project":"《keep》定制广告《我的全能“私人教练”》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"国家级","grade":"入围国赛作品","type":"award","category":"竞赛获奖","competition":"“腾讯视频创意大赛”","project":"《携程app》定制广告","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2021年“iTeach”全国大学生数字化教育应用创新大赛","project":"四史学习背景下面向大学生的教育技术学发展史科普交互课件设计——教技时光机","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2021年“iTeach”全国大学生数字化教育应用创新大赛","project":"影视后期教学交互课件——PR达人","leader":"","members":"","note":""},{"year":"2015","time":"2015","level":"省部级","grade":"优胜奖","type":"award","category":"竞赛获奖","competition":"上海大学生影像大赛","project":"汪晓婷微电影《滤镜》","leader":"","members":"","note":""},{"year":"2016","time":"2016","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2016年上海市第八届大学生计算应用能力大赛","project":"《沪语情境系列动画》","leader":"","members":"","note":""},{"year":"2016","time":"2016","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第一届“汇创青春”上海大学生文化创意作品展示活动","project":"《全媒体背景下大学生科研成果数字化展示窗口建设》","leader":"","members":"","note":""},{"year":"2016","time":"2016","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第一届“汇创青春”上海大学生文化创意作品展示活动","project":"《成长》","leader":"","members":"","note":""},{"year":"2016","time":"2016","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第一届“汇创青春”上海大学生文化创意作品展示活动","project":"《沪语情境系列动画》","leader":"","members":"","note":""},{"year":"2016","time":"2016","level":"省部级","grade":"优胜奖","type":"award","category":"竞赛获奖","competition":"第一届“汇创青春”上海大学生文化创意作品展示活动","project":"《滤镜》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第二届“汇创青春”上海大学生文化创意作品展示活动","project":"《影视后期制作软件实用操作指南》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"省部级","grade":"最佳影片","type":"award","category":"竞赛获奖","competition":"2017“千山杯”辽宁首届微电影节","project":"微电影《换位》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"省部级","grade":"优秀影片","type":"award","category":"竞赛获奖","competition":"2017“千山杯”辽宁首届微电影节","project":"微电影《滤镜》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2017年上海市大学生计算机应用能力大赛","project":"全媒体背景下大学生优秀成果数字化展示窗口建设","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"优秀奖","type":"award","category":"竞赛获奖","competition":"上海市微公益新征程公益广告设计大赛","project":"《亡烟》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《亡烟》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《大学问：大学课外学什么》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《换位》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"三等级","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《爱如藤蔓》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"三等级","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《好奇的琪琪1》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"三等级","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《好奇的琪琪3》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"省部级","grade":"三等级","type":"award","category":"竞赛获奖","competition":"2018年上海市大学生网络文化节","project":"《儿子丢了》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2019年上海市大学生计算机应用能力大赛","project":"《“摄像大师”系列全媒体摄像课外自主学习资源》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019年上海市大学生计算机应用能力大赛","project":"学龄前儿童性教育科普系列微课","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"创意类二等奖","type":"award","category":"竞赛获奖","competition":"2019年“启影”第四届大学生电影节","project":"《亡烟》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"互联网+文化创意类一等奖","type":"award","category":"竞赛获奖","competition":"第四届“汇创青春”上海大学生文化创意作品展示活动","project":"《中北萌新攻略——华东师范大学新生指南视频》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"青年影展三等奖","type":"award","category":"竞赛获奖","competition":"第四届“汇创青春”上海大学生文化创意作品展示活动","project":"《儿子丢了》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019上海大学生网络文化节","project":"《针对当代大学生的海派传统文化考察探究与h5交互式新媒体传播—以海派旗袍匠艺为例》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019上海大学生网络文化节","project":"《青年中国红：我心中的中国红》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《“字”古以来》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《好奇的琪琪》交互绘本","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《针对中学生影视素养培育的嵌入式视频交互网站设计——中学生校园电视台成长指南》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《拒绝拖延》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《穿越时空的爱恋：中华礼仪知多少》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《屏幕之外》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《针对当代大学生的海派传统文化移动端新媒体传播——以海派旗袍匠艺为例》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《沪谚》生活类","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第八届全国数字艺术设计大赛华东赛区","project":"《测一测你是不是抗疫小达人》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"青年影展一等奖（全校唯一）","type":"award","category":"竞赛获奖","competition":"第五届“汇创青春”上海大学生文化创意作品展示活动","project":"《衡水中学》同名纪录片","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"音乐类二等奖（全校唯一）","type":"award","category":"竞赛获奖","competition":"第五届“汇创青春”上海大学生文化创意作品展示活动","project":"《大学生原创中华礼仪系列教育短片<仪仪有礼>主题曲——仪仪》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"数媒动画类三等奖","type":"award","category":"竞赛获奖","competition":"第五届“汇创青春”上海大学生文化创意作品展示活动","project":"《好奇的琪琪》交互绘本","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2020年上海市大学生计算机应用能力大赛","project":"《中华礼仪教育交互学习系统》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"优秀奖","type":"award","category":"竞赛获奖","competition":"2020中国杭州数字创意设计大赛","project":"H5交互数字绘本《好奇的琪琪》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2020年第五届全国大学生网络编辑创新大赛华东赛区","project":"《华衣美裳：海派文化考察》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"第九届未来设计教育研讨会暨第九届全国高校数字设计大赛（上海赛区）","project":"《口罩历险记》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第九届未来设计教育研讨会暨第九届全国高校数字设计大赛（上海赛区）","project":"《下一代》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第九届未来设计教育研讨会暨第九届全国高校数字设计大赛（上海赛区）","project":"《劳疫结合——花花的日记》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第九届未来设计教育研讨会暨第九届全国高校数字设计大赛（上海赛区）","project":"《末位玩家》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"数媒动画类三等奖","type":"award","category":"竞赛获奖","competition":"第六届“汇创青春”上海大学生文化创意作品展示活动","project":"《字古以来》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2021年上海市大学生计算机应用能力大赛","project":"《屏幕之外》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2021年上海市大学生计算机应用能力大赛","project":"《影视练习生》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2021年上海市大学生计算机应用能力大赛","project":"《你不知道的鱼》","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"省部级","grade":"优胜奖","type":"award","category":"竞赛获奖","competition":"2021年上海市大学生计算机应用能力大赛","project":"《字古以来》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"校级","grade":"优胜奖","type":"award","category":"竞赛获奖","competition":"华东师范大学第三届“互联网+”大学生创新创业大赛","project":"《镖行校园》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"校级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2017年华东师范大学大学生计算机应用能力大赛","project":"《基于微信公众平台的C++微视频教学》","leader":"","members":"","note":""},{"year":"2017","time":"2017","level":"校级","grade":"优秀项目奖","type":"award","category":"竞赛获奖","competition":"2017年教育学部创新创业训练项目","project":"《基于上海物质文化遗产石库门的主题历史纪录片创作和分析》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"校级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"华东师范大学2018年寒假社会实践","project":"《关于中国大学生课外自主学习现状的纪录片创作与社会调研》","leader":"","members":"","note":""},{"year":"2018","time":"2018","level":"校级","grade":"优秀项目奖","type":"award","category":"竞赛获奖","competition":"华东师范大学2018年寒假社会实践","project":"","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019年华东师范大学大学生计算机应用能力大赛","project":"《中华礼仪教育情景短片及交互学习系统》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2019年华东师范大学大学生计算机应用能力大赛","project":"《“摄像大师”系列全媒体摄像课外自主学习资源》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2019年华东师范大学大学生计算机应用能力大赛","project":"学龄前儿童性教育科普系列微课","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"最佳报告奖","type":"award","category":"竞赛获奖","competition":"华东师范大学第五届本科生创新创业训练学术论坛","project":"《衡水中学》","leader":"","members":"","note":""},{"year":"2019","time":"2019","level":"校级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"华东师范大学2019年寒假社会实践","project":"《针对高中生的基本影视素养培训-以上海市吴迅中学为例》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"校级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2020“学在师大、筑梦师大”70秒原创微视频VLOG大赛","project":"《口罩历险记》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"校级","grade":"优胜奖","type":"award","category":"竞赛获奖","competition":"2020“学在师大、筑梦师大”70秒原创微视频VLOG大赛","project":"《致敬战疫新人云婚礼》无证书","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"校级","grade":"优胜奖","type":"award","category":"竞赛获奖","competition":"2020“学在师大、筑梦师大”70秒原创微视频VLOG大赛","project":"《异生疫》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"校级","grade":"优秀项目","type":"award","category":"竞赛获奖","competition":"华东师范大学2020年主题社会实践","project":"《针对初中生的反校园网络暴力系列宣传教育》","leader":"","members":"","note":""},{"year":"2020","time":"2020","level":"校级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2020年华东师范大学大学生计算机应用能力大赛","project":"针对当代大学生的海派传统文化移动端新媒体传播——以海派旗袍匠艺为例","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"校级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2021年华东师范大学大学生计算机应用能力大赛","project":"针对中学生影视素养培育的嵌入式视频交互课件设计—中学生校园电视台成长指南·影视练习生","leader":"","members":"","note":""},{"year":"2021","time":"2021","level":"校级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2021年华东师范大学大学生计算机应用能力大赛","project":"针对初中生的反网络暴力教育互动动画短片","leader":"","members":"","note":""},{"year":"2022","time":"2022年5月","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2022年（第十四届）上海市大学生计算机应用能力大赛","project":"翻转课堂模式下针对摄像技艺的教学资源设计与开发——摄像大师2.0","leader":"张丽洁","members":"张丽洁 10194500077、刘丹妮 10194500124","note":""},{"year":"2022","time":"2022年5月","level":"国家级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"首届“致敬中华优秀传统文化”项目学习活动","project":"中华礼仪系列情景教育短片研究报告","leader":"程佳敏","members":"程佳敏、金豪 10184500135、周子皓","note":""},{"year":"2022","time":"2022年8月","level":"国家级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2022年（第15届）中国大学生计算机设计大赛","project":"翻转课堂模式下针对摄像技艺的教学资源设计与开发——摄像大师2.0","leader":"张丽洁","members":"张丽洁 10194500077、刘丹妮 10194500124","note":""},{"year":"2022","time":"2022年8月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2022年第十届未来设计师全国高校数字艺术设计大赛","project":"“传统”带你玩游戏科普交互系统之抽陀螺篇","leader":"孟子楠","members":"孟子楠 10204500104、黄尔纯 10204500039","note":""},{"year":"2023","time":"2023年7月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2023年（第十六届）上海市大学生计算机应用能力大赛","project":"胡小燕历险记","leader":"朱越","members":"朱越 10204507009、马培然 10204507408","note":""},{"year":"2023","time":"2023年6月","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"“争做校园好网民，凝聚网络正能量，青春献礼二十大”上海高校网络文化节","project":"配置消毒液—其实很简单","leader":"代琳","members":"代琳 10204500071、黄尔纯 10204500039、马培然 10204507408、肖经晶 10214507007、杜常晴 10204507006","note":""},{"year":"2023","time":"2023年6月","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"上海大学生网络文化节微电影作品征集活动","project":"扶贫日记","leader":"蔡灵希","members":"蔡灵希 10214507027（团队成员为四川大学同学）","note":""},{"year":"2023","time":"2023年6月","level":"省部级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"“争做校园好网民，凝聚网络正能量，青春献礼二十大”上海高校网络文化节","project":"末位玩家","leader":"","members":"","note":""},{"year":"2023","time":"2023年6月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"“争做校园好网民，凝聚网络正能量，青春献礼二十大”上海高校网络文化节","project":"下一代","leader":"王新昀","members":"王新昀、张丽洁、刘丹妮、陈奕博","note":""},{"year":"2023","time":"2023年6月","level":"校级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2023年（第十六届）华东师范大学大学生计算机应用能力大赛","project":"胡小燕历险记","leader":"朱越","members":"朱越 10204507009、马培然 10204507408","note":""},{"year":"2023","time":"2023年12月","level":"校级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2023年华东师范大学本科教学成果奖","project":"数字教育资源设计和开发人才培养的新课程和新培养模式","leader":"","members":"","note":""},{"year":"2023","time":"2023年9月","level":"校级","grade":"一等奖","type":"award","category":"竞赛获奖","competition":"2023年“实验室安全环保”短视频大赛","project":"小花狮“lab来吧”安全讲堂——GHS象形图","leader":"张若瑜","members":"张若瑜 10214507029","note":""},{"year":"2024","time":"2024年9月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2024年第十二届未来设计师全国高校数字艺术设计大赛","project":"家有宠物，消杀更重要","leader":"张千羽","members":"张千羽、隋华颖 10224507025、杨怀稚、陈力帆","note":""},{"year":"2024","time":"2024年9月","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2024年第十二届未来设计师全国高校数字艺术设计大赛","project":"《大化西游》基于AIGC的化学科普动画片","leader":"毛宇彤","members":"毛宇彤 10214507411、程馨悦、邹昭辉 10212150422、张昊仁、杨怀稚","note":""},{"year":"2024","time":"2024年9月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2024年第十二届未来设计师全国高校数字艺术设计大赛","project":"全景红色电影——韶山毛泽东纪念馆","leader":"张新烨","members":"张新烨 10224507410、程馨悦、张千羽、杨怀稚、孙千然","note":""},{"year":"2024","time":"2024年9月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2024年第十二届未来设计师全国高校数字艺术设计大赛","project":"小花狮游世界——中考跨学科交互学习系统","leader":"程馨悦","members":"程馨悦、张新烨 10224507410、琚泽月、孙千然、蔡灵希","note":""},{"year":"2024","time":"2024年9月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"“第二届上海高校实验室安全月”实验室安全主题文创作品设计征集大赛","project":"小花狮“lab来吧”安全讲堂——GHS象形图","leader":"张若瑜","members":"张若瑜 10214507029","note":""},{"year":"2024","time":"2024年11月","level":"校级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2024华东师范大学实验室安全主题文创作品设计征集大赛——实验室安全主题短视频设计大赛","project":"“情绪稳定”的冰箱不是化学品存储的“保险箱”","leader":"张新烨","members":"张新烨 10224507410","note":""},{"year":"2024","time":"2024年11月","level":"校级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"2024华东师范大学实验室安全主题文创作品设计征集大赛——实验室安全主题宣传海报设计大赛","project":"码上安全","leader":"张新烨","members":"张新烨 10224507410","note":""},{"year":"2025","time":"2025年1月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"第三届上海高校实验室安全月活动主题文创作品设计——短视频设计","project":"“情绪稳定”的冰箱不是化学品存储的“保险箱”","leader":"张新烨","members":"张新烨 10224507410","note":""},{"year":"2025","time":"2025年6月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2025年（第十七届）上海市大学生计算机应用能力大赛","project":"基于全流程AIGC的信息安全科普动画","leader":"张千羽","members":"张千羽、孙千然","note":""},{"year":"2025","time":"2025年6月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2025年（第十七届）上海市大学生计算机应用能力大赛","project":"列车进“栈”","leader":"王中焜","members":"王中焜、顾梦茹","note":""},{"year":"2025","time":"2025年8月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2025年第十三届未来设计师全国高校数字艺术设计大赛","project":"青春心语，AI来演绎","leader":"郝明康","members":"郝明康、魏宏涛、王中焜、张新烨、隋华颖","note":""},{"year":"2025","time":"2025年8月","level":"省部级","grade":"三等奖","type":"award","category":"竞赛获奖","competition":"2025年第十三届未来设计师全国高校数字艺术设计大赛","project":"基于全流程AIGC的信息安全科普动画","leader":"张千羽","members":"张千羽、程馨悦、刘子衿、张新烨、琚泽月","note":""},{"year":"2025","time":"2025年9月","level":"省部级","grade":"二等奖","type":"award","category":"竞赛获奖","competition":"第七届上海大学生网络文化节","project":"家有宠物，更需要消毒！","leader":"程馨悦","members":"程馨悦、张新烨、隋华颖、张昊仁","note":""},{"type":"copyright","category":"软件著作权","year":"2021","time":"2021年8月5日","student_id":"10184500431","leader":"周昕祺","department":"教育学部","major":"教育技术学","is_first_inventor":"是","project":"针对小学低年级的汉字字形演变在线学习系统","category_type":"计算机软件著作权","app_number":"","app_date":"","dev_date":"","grant_number":"2021SR1159314","grant_date":"2021年8月5日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"宁沛灵、庄子诺","other_ids":"10184500339、10184500125","members":"周昕祺 10184500431；宁沛灵、庄子诺 10184500339、10184500125","note":""},{"type":"copyright","category":"软件著作权","year":"2021","time":"2021年8月5日","student_id":"10184500429","leader":"林易","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"针对初中生的反网络暴力教育在线学习交互系统","category_type":"计算机软件著作权","app_number":"","app_date":"","dev_date":"","grant_number":"2021SR1156620","grant_date":"2021年8月5日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"於津因、梁儒铭、宛宁静","other_ids":"10184500328、10184500510、10184500515","members":"林易 10184500429；於津因、梁儒铭、宛宁静 10184500328、10184500510、10184500515","note":""},{"type":"copyright","category":"软件著作权","year":"2021","time":"2021年8月6日","student_id":"10184500237","leader":"陆怡婕","department":"教育学部","major":"教育技术学","is_first_inventor":"是","project":"针对在沪大学生沪语沪谚学习：上海文化感受的在线学习交互系统","category_type":"计算机软件著作权","app_number":"","app_date":"","dev_date":"","grant_number":"2021SR1160441","grant_date":"2021年8月6日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"李晗雨、崔本慧子、张丽洁","other_ids":"10184500220、10184500418、10194500077","members":"陆怡婕 10184500237；李晗雨、崔本慧子、张丽洁 10184500220、10184500418、10194500077","note":""},{"type":"copyright","category":"软件著作权","year":"2021","time":"2021年5月21日","student_id":"10184500515","leader":"宛宁静","department":"教育学部","major":"教育技术学","is_first_inventor":"是","project":"针对教育专业本科生自我发展的在线学习交互系统","category_type":"计算机软件著作权","app_number":"","app_date":"","dev_date":"","grant_number":"2021SR0737123","grant_date":"2021年5月21日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"","cert_baidu":"是","other_names":"盛洁、金豪","other_ids":"10184500301、10184500135","members":"宛宁静 10184500515；盛洁、金豪 10184500301、10184500135","note":""},{"type":"copyright","category":"软件著作权","year":"2023","time":"2023年2月28日","student_id":"10204507016","leader":"王文婷","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"基于虚拟仿真摄像机的摄像技艺教学系统[简称：摄像大师]V1.0","category_type":"计算机软件著作权","app_number":"10875337","app_date":"2023年9月21日","dev_date":"","grant_number":"2023SR0288166","grant_date":"2023年2月28日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"朱越、孟子楠、肖经晶","other_ids":"10204507009、10204500104、10214507007","members":"王文婷 10204507016；朱越、孟子楠、肖经晶 10204507009、10204500104、10214507007","note":""},{"type":"copyright","category":"软件著作权","year":"2023","time":"2023年3月2日","student_id":"10204507006","leader":"杜常晴","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"\"传统\"带你玩游戏——\"双减\"背景下针对小学生的中华传统游戏科普交互系统","category_type":"计算机软件著作权","app_number":"10882142","app_date":"2023年9月21日","dev_date":"","grant_number":"2023SR0294971","grant_date":"2023年3月2日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"雷奕欣、马培然、吴诚薇","other_ids":"10204507402、10204507408、10214507418","members":"杜常晴 10204507006；雷奕欣、马培然、吴诚薇 10204507402、10204507408、10214507418","note":""},{"type":"copyright","category":"软件著作权","year":"2023","time":"2023年3月2日","student_id":"10204500071","leader":"邓宇菲","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"\"四史\"学习背景下，面向大学生的中国教育技术发展史科普交互系统[简称：教技时光机]","category_type":"计算机软件著作权","app_number":"10882028","app_date":"2023年9月21日","dev_date":"","grant_number":"2023SR0294857","grant_date":"2023年3月2日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"代琳、潘琦、窦雨萧、曹钰婷","other_ids":"10204500071、10204500095、10214507012、10214507009","members":"邓宇菲 10204500071；代琳、潘琦、窦雨萧、曹钰婷 10204500071、10204500095、10214507012、10214507009","note":""},{"type":"copyright","category":"软件著作权","year":"2023","time":"2023年3月3日","student_id":"10194500004","leader":"彭佳","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"针对小学低年级的汉字字形演变移动端学习交互系统[简称：识字知源]","category_type":"计算机软件著作权","app_number":"10882141","app_date":"2023年9月22日","dev_date":"","grant_number":"2023SR0294970","grant_date":"2023年3月3日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"黄岩、毛宇彤、徐萌翊","other_ids":"10204507405、10214507411、10214507004","members":"彭佳 10194500004；黄岩、毛宇彤、徐萌翊 10204507405、10214507411、10214507004","note":""},{"type":"copyright","category":"软件著作权","year":"2024","time":"2024年7月30日","student_id":"10214507009","leader":"曹钰婷","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"小花狮启智化学——中考化学实验互动学习平台","category_type":"计算机软件著作权","app_number":"13485682","app_date":"2024年3月3日","dev_date":"","grant_number":"2024SR1081809","grant_date":"2024年7月30日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"","other_names":"肖经晶、隋华颖、张千羽","other_ids":"10214507007、10224507025、10224507032","members":"曹钰婷 10214507009；肖经晶、隋华颖、张千羽 10214507007、10224507025、10224507032","note":""},{"type":"copyright","category":"软件著作权","year":"2024","time":"2024年7月30日","student_id":"10214507012","leader":"窦雨萧","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"小花狮游世界——面向跨学科案例分析解题模型的交互学习系统","category_type":"计算机软件著作权","app_number":"13033439","app_date":"2024年3月3日","dev_date":"","grant_number":"2024SR0629566","grant_date":"2024年7月30日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"吴诚薇、蔡灵希、程馨悦","other_ids":"10204507418、10214507027、10224507011","members":"窦雨萧 10214507012；吴诚薇、蔡灵希、程馨悦 10204507418、10214507027、10224507011","note":""},{"type":"copyright","category":"软件著作权","year":"2024","time":"2024年7月30日","student_id":"10214507007","leader":"肖经晶","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"勇攀化学高峰V1.0——面向中考化学实验操作考试及化学中考实验题的交互学习系统","category_type":"计算机软件著作权","app_number":"12785666","app_date":"2024年3月3日","dev_date":"","grant_number":"2024SR0382294","grant_date":"2024年7月30日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"狄鹏、庄雅善、刘慧欣","other_ids":"10214507017、10214507025、10214507037","members":"肖经晶 10214507007；狄鹏、庄雅善、刘慧欣 10214507017、10214507025、10214507037","note":""},{"type":"copyright","category":"软件著作权","year":"2024","time":"2024年3月12日","student_id":"10224507032","leader":"张千羽","department":"教育学部","major":"教育技术学","is_first_inventor":"否","project":"消杀志愿者V1.0——针对疫情防护知识的微课程交互学习系统","category_type":"计算机软件著作权","app_number":"12786314","app_date":"2023年12月19日","dev_date":"","grant_number":"2024SR0381940","grant_date":"2024年3月12日","advisor":"鲁力立","advisor_id":"20180244","cert_school":"是","cert_baidu":"是","other_names":"程馨悦、琚泽月、邹昭辉","other_ids":"10224507011、10224511411、10212150422","members":"张千羽 10224507032；程馨悦、琚泽月、邹昭辉 10224507011、10224511411、10212150422","note":""}],"news":[{"date":"2026-05-01","title":"壹幕工作室公众号（EMOVIE）全栏目概览","summary":"壹幕工作室官方微信公众号「EMOVIE壹幕工作室」持续运营多年，形成五大品牌栏目体系：①【壹幕速报】——招新通知、新成员报到、活动预告；②【壹幕show】——《我和手机分手了》《Fade被大学生玩坏了》《口罩历险记》《疫情暗黑动画》等学生创作展映；③【壹幕出品】——教学成果一等奖等重大作品发布；④【壹幕个展】——国创优秀项目展、3D打印定格动画、《中国大学生究竟在学什么》纪录片、教信学姐微电影（全网点击量已破400万）；⑤【壹幕TALK秀】——教育学大类分流指南、哈佛学姐科创心得。另与華師影像公众号合作推出汉服写真。搜狗微信搜索显示约83篇公开文章。","category":"壹幕工作室","sources":[{"name":"搜狗微信 EMOVIE壹幕工作室（约83篇）","url":"https://weixin.sogou.com/weixin?type=2&query=EMOVIE%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2026-05-01"},{"name":"華師影像 × 壹幕工作室 汉服写真","url":"https://weixin.sogou.com/weixin?type=2&query=%E5%8D%8E%E5%B8%88%E5%BD%B1%E5%83%8F+%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2020-01-01"},{"name":"壹幕工作室B站频道","url":"https://space.bilibili.com/65442113","date":""},{"name":"壹幕工作室B站直播","url":"https://live.bilibili.com/5254025","date":""}]},{"date":"2026-03-09","title":"壹幕出品：信息安全AIGC动画第三集+数据克隆人","summary":"壹幕工作室在B站连续发布两部重磅AIGC科普动画：信息安全系列第三集《守卫个人安全边界线》，通过学生咨询、辅导员讲解及小花狮引导，展示敏感个人信息保护；以及《数据克隆人》，围绕初二女生林晓因泄露隐私催生AI数据克隆人的故事，科普人脸、密码等信息泄露危害。","category":"壹幕工作室","sources":[{"name":"B站《守卫个人安全边界线》","url":"https://live.bilibili.com/5254025","date":"2026-03-09"},{"name":"B站《数据克隆人》","url":"https://www.bilibili.com/list/65442113?oid=115373089230469&bvid=BV1GS4bzdEdw","date":"2026-03-09"}]},{"date":"2025-10-14","title":"壹幕出品：心理健康AIGC科普动画系列","summary":"壹幕工作室在B站持续发布心理健康AIGC科普动画系列，包括《人际交往的沟通技巧》等作品，展现青少年在青春期的情绪与沟通难题中的成长，用AIGC技术生动呈现心理健康教育内容。","category":"壹幕工作室","sources":[{"name":"B站《人际交往的沟通技巧》","url":"https://www.bilibili.com/list/65442113?oid=115373089230469&bvid=BV1GS4bzdEdw","date":"2025-10-14"}]},{"date":"2025-09-18","title":"壹幕出品：《报告！数据保卫已经开战》第2战","summary":"壹幕工作室与学校信息化治理办公室再度联手，推出全流程AIGC科普动画大片《报告！数据保卫已经开战》第二部力作。延续AIGC创新模式，以「网络钓鱼」这一高校频发风险为主题，通过真实案例生动解析。","category":"壹幕工作室","sources":[{"name":"华东师大信息化治理办公室","url":"https://eoffice.ecnu.edu.cn/ef/98/c29446a716696/page.htm","date":"2025-09-18"},{"name":"教育数字化资讯网转载","url":"https://edudigital123.com/article/71105/","date":"2025-09-18"}]},{"date":"2024-01-01","title":"壹幕出品：《报告！数据保卫已经开战》第1战","summary":"壹幕工作室推出首部全流程AIGC科普动画大片《报告！数据保卫已经开战（第1战）》，在华东师大校园掀起AI热潮。该作品标志着壹幕工作室在AIGC技术应用领域的重要突破。","category":"壹幕工作室","sources":[{"name":"华东师大信息化治理办公室","url":"https://eoffice.ecnu.edu.cn/ef/98/c29446a716696/page.htm","date":"2025-09-18"}]},{"date":"2023-09-22","title":"壹幕出品：网易公开课《经典诗词与人生》上线","summary":"由壹幕工作室承担录制和后期制作的华东师大通识精品课程《经典诗词与人生》（周圣伟教授主讲），在网易公开课平台正式上线，共12集，吸引6.5万人观看。课程同时在B站等平台发布。","category":"壹幕工作室","sources":[{"name":"网易公开课","url":"https://open.163.com/newview/movie/courseintro?newurl=FHJRORCA9","date":"2023-09-22"},{"name":"网易（课程详情）","url":"https://www.163.com/opencourse/detail/video-FHJRORCA9-SHJRORDK0","date":"2023-09-22"}]},{"date":"2023-09-02","title":"壹幕工作室公众号：2023级新成员报到","summary":"壹幕工作室官方微信公众号「EMOVIE壹幕工作室」发布2023级新成员报到推文，记录新一轮招新成果。壹幕工作室每年9月面向全校招新，公众号是工作室对外宣传和作品展示的核心平台。","category":"壹幕工作室","sources":[{"name":"EMOVIE壹幕工作室公众号","url":"https://weixin.sogou.com/weixin?type=2&query=EMOVIE%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2023-09-02"}]},{"date":"2022-07-19","title":"壹幕出品：《车间里的大国工匠——宣纸师傅》纪录片","summary":"华东师范大学教育高等研究院出品、教育信息技术学系壹幕工作室运用剪辑、特效包装等技术制作的12分钟田野调查纪录片《车间里的大国工匠——宣纸师傅》发布。作品深入安徽宣纸制作车间，记录宣纸这一国家级非遗技艺的匠人匠心。","category":"壹幕工作室","sources":[{"name":"制片帮报道","url":"https://www.zhipianbang.com/news/detail-392130.html","date":"2022-07-19"}]},{"date":"2022-01-01","title":"壹幕出品：校园民谣纪录片《青春心声》","summary":"由华东师范大学教育高等研究院出品，教育高等研究院与教育信息技术学系壹幕工作室共同制作的原创纪录片《青春心声：中国校园民谣记忆》发布。纪录片时长一个小时，重新梳理了「校园民谣」的演变历史，采访了音乐学、教育学的学者以及亲历者。","category":"壹幕工作室","sources":[{"name":"教育高等研究院","url":"https://www.cime.ecnu.edu.cn/jywhjlp/list.htm","date":"2022-01-01"},{"name":"展览预告页","url":"http://www.iase.ecnu.edu.cn/0c/07/c12885a199687/page.htm","date":"2022-01-01"}]},{"date":"2021-09-02","title":"壹幕工作室公众号：历年招新及作品推文（持续运营）","summary":"壹幕工作室微信公众号持续运营，发布多期招新推文和作品展示。包括2019级、2020级、2021级各年度招新通知和新成员报到，展现了工作室的传承与壮大。公众号下设【壹幕速报】【壹幕show】【壹幕出品】【壹幕个展】【壹幕TALK秀】等专栏。搜狗微信搜索显示约83篇公众号文章。","category":"壹幕工作室","sources":[{"name":"EMOVIE壹幕工作室公众号（搜狗）","url":"https://weixin.sogou.com/weixin?type=2&query=EMOVIE%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2021-09-02"},{"name":"B站壹幕工作室主页","url":"https://space.bilibili.com/65442113","date":""}]},{"date":"2020-03-15","title":"壹幕工作室公众号：云见面活动启动","summary":"新冠疫情期间，壹幕工作室创新性举办「教信系专业实践+云见面」线上活动，确保工作室的正常运营和学生的持续实践。公众号发布【壹幕速报】系列推文全程报道。","category":"壹幕工作室","sources":[{"name":"EMOVIE壹幕工作室公众号","url":"https://weixin.sogou.com/weixin?type=2&query=EMOVIE%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2020-03-15"}]},{"date":"2019-12-04","title":"壹幕出品：《仪仪有礼》体验展 + 10集系列教育短片","summary":"由华东师大文化建设委员会办公室支持、教育学部教育信息技术学系壹幕工作室主办的中华传统礼仪文化教育体验展在物理楼开幕。展览由《仪仪有礼》10集系列教育短片孵化而来，涵盖茶道、酒礼、用筷、祝寿、称呼、节日等众多中华传统礼仪文化知识。","category":"壹幕工作室","sources":[{"name":"华东师大官网","url":"https://www.ecnu.edu.cn/info/1094/7004.htm","date":"2019-12-05"},{"name":"科学网","url":"https://news.sciencenet.cn/htmlnews/2019/12/433473.shtm","date":"2019-12-04"},{"name":"教育学部社团建设专题","url":"https://ed.ecnu.edu.cn/b6/86/c45919a636550/page.htm","date":"2019-12-19"}]},{"date":"2019-01-15","title":"壹幕出品：俞立中校长访谈录在中国教育电视台播出","summary":"由壹幕工作室师生与大夏书院联合创作的专题短片《变化的时代，不变的奋斗——俞立中校长访谈录》于2019年1月4日在中国教育电视台（CETV1）播出，并由教育部关工委进行线上推送。","category":"壹幕工作室","sources":[{"name":"教育信息技术学系喜报","url":"http://www.deit.ecnu.edu.cn/20/11/c26198a270353/page.htm","date":"2019-01-14"},{"name":"华东师大官网","url":"https://www.ecnu.edu.cn/info/1094/13082.htm","date":"2019-01-15"}]},{"date":"2018-04-27","title":"壹幕工作室获评华东师大明星社团","summary":"华东师范大学官方发布明星社团专题介绍壹幕大学生影视工作室。壹幕工作室在教育学部「五个一百」背景下成立，以数字媒体专业教学为基础，是全校第一个教育主题的影视工作室。培养专业实践能力、沟通协作能力和组织领导能力。","category":"壹幕工作室","sources":[{"name":"华东师大明星社团专题","url":"https://cgj.ecnu.edu.cn/cgj20183/5c/97/c32126a351383/page.htm","date":"2018-04-27"}]},{"date":"2017-12-01","title":"壹幕出品：首部教学成果获上海市教学成果一等奖","summary":"壹幕工作室微信公众号【壹幕出品】专栏报道：工作室首部重要作品助力华东师范大学获得2017年上海市教学成果一等奖。该作品为壹幕工作室成立初期的标志性成果。","category":"壹幕工作室","sources":[{"name":"EMOVIE壹幕工作室公众号","url":"https://weixin.sogou.com/weixin?type=2&query=EMOVIE%E5%A3%B9%E5%B9%95%E5%B7%A5%E4%BD%9C%E5%AE%A4","date":"2017-12-01"}]}],"total":197}};
+
+async function init(){
+// ═════════════════════════════════════════════
+// 独立版模式：检测嵌入数据（离线运行）
+// ═════════════════════════════════════════════
+if(typeof EMBEDDED_DATA!=='undefined'){
+  ALL_DATA=EMBEDDED_DATA;
+  var mt=(EMBEDDED_DATA._meta&&EMBEDDED_DATA._meta.updateTime)||'未知';
+  document.getElementById('updateTime').textContent='数据版本：独立版（'+mt+'）';
+  switchSection('personal');
+  return;
+}
+
+// ═════════════════════════════════════════════
+// 在线模式：从服务器获取数据
+// ═════════════════════════════════════════════
+var v='0';
+try{var vi=await fetch('/api/version',{cache:'no-store'});var vj=await vi.json();v=vj.version;}catch(e){}
+
+var safeFetch=async function(url,defaultVal){
+  try{
+    var sep=url.indexOf('?')>=0?'&':'?';
+    var r=await fetch(url+sep+'_v='+v,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status+' ('+url+')');
+    return await r.json();
+  }catch(e){
+    console.warn('数据加载失败 ['+url+']: '+e.message);
+    return defaultVal;
+  }
+};
+
+var empty={results:[],stats:{}};
+ALL_DATA.profile=empty; ALL_DATA.lulili=empty; ALL_DATA.metaverse=empty;
+ALL_DATA.base=empty; ALL_DATA.related=empty; ALL_DATA.honors=empty;
+
+var[pr,lr,mr,br,rr,hr]=await Promise.all([
+  safeFetch('/api/search?topic=profile',empty),
+  safeFetch('/api/search?topic=lulili',empty),
+  safeFetch('/api/search?topic=metaverse',empty),
+  safeFetch('/api/search?topic=base',empty),
+  safeFetch('/api/search?topic=related',empty),
+  safeFetch('/api/search?topic=honors',empty)
+]);
+ALL_DATA.profile=pr; ALL_DATA.lulili=lr; ALL_DATA.metaverse=mr;
+ALL_DATA.base=br; ALL_DATA.related=rr; ALL_DATA.honors=hr;
+
+try{var yr=await fetch('/static/yimu.json?_v='+v,{cache:'no-store'});ALL_DATA.yimu=await yr.json();}catch(e){ALL_DATA.yimu={results:[],stats:{}};}
+
+switchSection('personal');
+}
+
+function switchSection(sec){
+currentSection=sec;
+document.querySelectorAll('.section-tab').forEach(t=>t.classList.remove('active'));
+document.querySelector('[data-sec="'+sec+'"]').classList.add('active');
+const ctrl=document.getElementById('controlsArea');
+if(sec==='personal'){
+ctrl.innerHTML='<div class="sec-controls"><button class="btn-primary" onclick="xpAll()">▼ 展开全部</button> <button onclick="clAll()">▶ 折叠全部</button> <span style="margin-left:12px">📥 导出全部：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportAllProfileExcel()">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportAllProfileWord()">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderPersonal();
+}else if(sec==='yimu'){
+ctrl.innerHTML='<div class="sec-controls">'
++' 排序：<select id="ymSort" onchange="renderYimu()">'
++'<option value="time">按时间（新→旧）</option>'
++'<option value="time_asc">按时间（旧→新）</option>'
++'<option value="level">按级别（国家级→省部级→校级）</option>'
++'<option value="year">按年份（新→旧）</option>'
++'</select>'
++' 筛选：级别 <select id="ymFilterLevel" onchange="renderYimu()">'
++'<option value="">全部</option>'
++'<option value="国家级">国家级</option>'
++'<option value="省部级">省部级</option>'
++'<option value="校级">校级</option>'
++'</select>'
++' 年份 <select id="ymFilterYear" onchange="renderYimu()">'
++'<option value="">全部</option>'
++'</select>'
++' 等级 <select id="ymFilterGrade" onchange="renderYimu()">'
++'<option value="">全部</option>'
++'<option value="一等奖">一等奖</option>'
++'<option value="二等奖">二等奖</option>'
++'<option value="三等奖">三等奖</option>'
++'<option value="优秀奖">优秀奖/优秀作品</option>'
++'</select>'
++' <button onclick="resetYmFilter()">重置筛选</button>'
++' <span style="margin-left:12px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportYimuExcel()">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportYimuWord()">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderYimu();
+}else if(sec==='metaverse'){
+ctrl.innerHTML='<div class="sec-controls"><select id="mvCat" onchange="renderMetaverse()"><option value="all">全部</option></select> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'metaverse\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'metaverse\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderMetaverse();
+}else if(sec==='base'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'base\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'base\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderBase();
+}else if(sec==='lulili'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'lulili\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'lulili\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderLulili();
+}else if(sec==='related'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'related\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'related\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderRelated();
+}else if(sec==='honors'){
+ctrl.innerHTML='<div class="sec-controls"> <span style="margin-left:8px">📥 导出：</span><button class="btn-primary" style="background:#2e7d32;border-color:#2e7d32" onclick="exportSectionExcel(\'honors\')">📊 Excel</button> <button class="btn-primary" style="background:#1565c0;border-color:#1565c0" onclick="exportSectionWord(\'honors\')">📝 Word</button><span class="sec-stat" id="secStat"></span></div>';
+renderHonors();
+}
+}
+
+// ═══════ SECTION 1: PERSONAL ═══════
+function renderPersonal(){
+const blocks=ALL_DATA.profile.results||[];
+document.getElementById('secStat').textContent=blocks.length+' 个板块';
+let html=renderProfileBanner();
+html+=blocks.map((block,i)=>renderBlock(block,i)).join('');
+document.getElementById('contentArea').innerHTML=html;
+}
+
+function renderProfileBanner(){
+  return '<div class="profile-banner"><div class="profile-avatar">🎓</div><div><div class="profile-name">鲁力立</div><div class="profile-meta">华东师范大学 教育学部 教育信息技术学系 · 高级工程师（副高）<br>华东师范大学智慧教育产教基地 负责人</div><div class="profile-tags"><span class="tag">85后</span><span class="tag">中共党员</span><span class="tag">教育博士</span><span class="tag">CSSCI审稿人</span><span class="tag">混合式教学特等奖</span></div></div></div>';
+}
+
+function renderBlock(block,idx){
+const subs=block.subsections||[];
+const total=subs.reduce((s,sub)=>s+(sub.items||[]).length+(sub.rows||[]).length,0);
+const icons=['bicon-1','bicon-2','bicon-3','bicon-4','bicon-5','bicon-6'];
+return '<div class="block-card" id="blk-'+idx+'"><div class="block-header" onclick="toggleBlk('+idx+')"><div class="block-icon '+icons[idx%6]+'">'+(idx+1)+'</div><div class="block-title-wrap"><span class="block-title">'+escHtml(block.title)+'</span><div class="export-btns" onclick="event.stopPropagation()"><button class="export-btn xlsx" title="导出为Excel" onclick="exportBlockExcel('+idx+')">📊 Excel</button><button class="export-btn docx" title="导出为Word" onclick="exportBlockWord('+idx+')">📝 Word</button></div></div><span class="block-badge">'+total+'条</span><span class="block-arrow" id="arr-'+idx+'">▼</span></div><div class="block-body" id="bdy-'+idx+'">'+subs.map(sub=>renderSub(sub)).join('')+'</div></div>';
+}
+
+function renderSub(sub){
+const type=sub.type||'list',items=sub.items||[],rows=sub.rows||[],cols=sub.columns||[];
+const count=items.length+rows.length;
+let body='';
+if(type==='table')body=renderTable(cols,rows);
+else if(type==='timeline')body=renderTimeline(items);
+else if(type==='tags')body=renderTags(items);
+else if(type==='card')body=renderCards(items);
+else body=renderList(items);
+return '<div class="subsection"><div class="subsection-title">'+escHtml(sub.title)+'<span class="sub-count">('+count+')</span></div>'+body+'</div>';
+}
+
+function renderTable(cols,rows){
+if(!rows.length)return '<div style="color:#b2bec3;font-size:13px">暂无数据</div>';
+const thead='<tr>'+cols.map(c=>'<th>'+escHtml(c)+'</th>').join('')+'</tr>';
+const tbody=rows.map((row,i)=>'<tr>'+row.map((cell,j)=>{
+let v=escHtml(String(cell));
+// Step 1: convert [text](url) markdown to <a> tags
+v=v.replace(/\[([^\]]+)\]\((https?:\/\/[^\s<>"]+)\)/g,'<a href="$2" target="_blank" rel="noopener" style="color:#667eea">$1</a>');
+// Step 2: auto-link bare URLs only if not already inside <a> tags
+if(!v.includes('<a')){
+v=v.replace(/(https?:\/\/[^\s<>")]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+const cn=(cols[j]||'').toLowerCase();
+if(cn.includes('级别')||cn.includes('类型')){
+const m={'CSSCI':'cat-academic','SSCI':'cat-yimu','SCI':'cat-yimu','纵向':'cat-project','横向':'cat-base'};
+for(const[k,c]of Object.entries(m)){if(v.includes(k)){v='<span class="news-cat '+c+'">'+v+'</span>';break;}}
+}
+return '<td>'+v+'</td>';
+}).join('')+'</tr>').join('');
+return '<table class="data-table">'+thead+tbody+'</table>';
+}
+
+function renderTimeline(items){
+return '<div class="timeline">'+items.map(it=>{
+let unitHtml=it.unit?'<div class="tl-unit">🏛 '+escHtml(it.unit)+'</div>':'';
+let linkHtml=it.link?' <a href="'+escHtml(it.link)+'" target="_blank" rel="noopener" class="tl-link" title="查看新闻报道">🔗</a>':'';
+return '<div class="tl-item"><div class="tl-label">'+escHtml(it.label)+'</div><div class="tl-value">'+escHtml(it.value)+linkHtml+'</div>'+unitHtml+'</div>';
+}).join('')+'</div>';
+}
+
+function renderList(items){
+return '<div class="profile-list">'+items.map(it=>{
+let v=escHtml(it.value);v=v.replace(/(https?:\/\/[^\s<>"]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+let lh=it.link?' <a href="'+escHtml(it.link)+'" target="_blank" rel="noopener" class="item-link" title="查看新闻报道">🔗</a>':'';
+return '<div class="pl-item"><span class="pl-label">'+escHtml(it.label)+'</span><span class="pl-value">'+v+lh+'</span></div>';
+}).join('')+'</div>';
+}
+function renderTags(items){return '<div class="tag-cloud">'+items.map(it=>'<span class="tag-item">'+escHtml(it.value)+'</span>').join('')+'</div>';}
+function renderCards(items){return '<div class="card-grid">' + items.map(it=>{
+let lh=it.link?' <a href="'+escHtml(it.link)+'" target="_blank" rel="noopener" class="item-link" title="查看新闻报道">🔗</a>':'';
+return '<div class="c-item"><div class="c-item-label">'+escHtml(it.label)+'</div><div class="c-item-value">'+escHtml(it.value)+lh+'</div></div>';
+}).join('') + '</div>';}
+
+function toggleBlk(idx){const card=document.getElementById('blk-'+idx),arr=document.getElementById('arr-'+idx);if(!card)return;card.classList.toggle('collapsed');if(arr)arr.textContent=card.classList.contains('collapsed')?'▶':'▼';}
+function xpAll(){document.querySelectorAll('.block-card').forEach((c,i)=>{c.classList.remove('collapsed');const a=document.getElementById('arr-'+i);if(a)a.textContent='▼';});}
+function clAll(){document.querySelectorAll('.block-card').forEach((c,i)=>{c.classList.add('collapsed');const a=document.getElementById('arr-'+i);if(a)a.textContent='▶';});}
+
+// ═══════ SECTION 2: YIMU STUDIO ═══════
+function renderYimu(){
+var yd=ALL_DATA.yimu||{};
+var stats=yd.stats||{};
+var items=yd.results||[];
+var evs=(ALL_DATA.lulili||{}).results||[];
+var events=evs.filter(function(e){return e.category==='壹幕工作室';});
+events.sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+
+var sortEl=document.getElementById('ymSort');
+var levelEl=document.getElementById('ymFilterLevel');
+var yearEl=document.getElementById('ymFilterYear');
+var gradeEl=document.getElementById('ymFilterGrade');
+
+var sortBy=sortEl?sortEl.value:'time';
+var fLevel=levelEl?levelEl.value:'';
+var fYear=yearEl?yearEl.value:'';
+var fGrade=gradeEl?gradeEl.value:'';
+
+// Populate year dropdown once
+if(yearEl && yearEl.options.length<=1){
+  var years=[];
+  items.forEach(function(x){if(x.year && years.indexOf(x.year)<0) years.push(x.year);});
+  years.sort().reverse();
+  years.forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;yearEl.appendChild(o);});
+}
+
+// Filter
+var filtered=[];
+for(var i=0;i<items.length;i++){
+  var x=items[i];
+  if(fLevel && x.level!==fLevel) continue;
+  if(fYear && x.year!==fYear) continue;
+  if(fGrade){
+    var g=x.grade||'';
+    if(g.indexOf(fGrade)===-1) continue;
+  }
+  filtered.push(x);
+}
+
+// Sort
+var lo={};
+lo['国家级']=1;lo['省部级']=2;lo['校级']=3;lo['']=9;
+if(sortBy==='time'){
+  filtered.sort(function(a,b){return (b.time||'0000').localeCompare(a.time||'0000');});
+}else if(sortBy==='time_asc'){
+  filtered.sort(function(a,b){return (a.time||'0000').localeCompare(b.time||'0000');});
+}else if(sortBy==='level'){
+  filtered.sort(function(a,b){
+    var la=lo[a.level]||9, lb=lo[b.level]||9;
+    if(la!==lb) return la-lb;
+    return (a.time||'0000').localeCompare(b.time||'0000');
+  });
+}else if(sortBy==='year'){
+  filtered.sort(function(a,b){
+    return (b.year||'0000').localeCompare(a.year||'0000')||(b.time||'0000').localeCompare(a.time||'0000');
+  });
+}
+
+// Group by category
+var groups={};
+filtered.forEach(function(x){
+  var cat=x.category||'其他';
+  if(!groups[cat]) groups[cat]={items:[]};
+  groups[cat].items.push(x);
+});
+var co={};
+co['竞赛获奖']=1;co['科创项目']=2;co['社会实践']=3;co['教师荣誉']=4;co['软件著作权']=5;
+var sortedCats=Object.keys(groups).sort(function(a,b){return (co[a]||9)-(co[b]||9);});
+
+var total=filtered.length;
+var statEl=document.getElementById('secStat');
+if(statEl) statEl.textContent='共 '+total+' 条记录（总计 '+items.length+' 条）';
+
+var html='';
+html+='<div class="profile-banner" style="margin-bottom:20px">';
+html+='<div class="profile-avatar" style="background:linear-gradient(135deg,#00838f,#00bcd4)">🎬</div>';
+html+='<div><div class="profile-name">壹幕工作室 (EMOVIE)</div>';
+html+='<div class="profile-meta">';
+html+='2016年创设 | 华东师范大学首个教师引领的大学生影视工作室<br>';
+html+='五大品牌栏目：壹幕速报 | 壹幕SHOW | 壹幕出品 | 壹幕个展 | 壹幕TALK秀<br>';
+html+='<a href="https://space.bilibili.com/65442113" target="_blank" rel="noopener">B站频道</a> · ';
+html+='<a href="https://live.bilibili.com/5254025" target="_blank" rel="noopener">B站直播间</a> · ';
+html+='<a href="https://www.deit.ecnu.edu.cn/20/07/c26198a270343/page.htm" target="_blank" rel="noopener">华东师大教信系专题</a>';
+html+='</div></div></div>';
+
+html+='<div class="yimu-stats">';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.award_national||0)+'</div><div class="ys-label">国家级获奖</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.award_provincial||0)+'</div><div class="ys-label">省部级获奖</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.award_total||0)+'</div><div class="ys-label">获奖总计</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.project_total||0)+'</div><div class="ys-label">科创项目</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.project_national||0)+'</div><div class="ys-label">国家级科创</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.honor_total||0)+'</div><div class="ys-label">教师荣誉</div></div>';
+html+='<div class="ys-card"><div class="ys-num">'+(stats.copyright_total||0)+'</div><div class="ys-label">软著</div></div>';
+html+='</div>';
+
+var ci={};
+ci['竞赛获奖']='🏆';ci['科创项目']='🔬';ci['社会实践']='🌱';ci['教师荣誉']='🏅';ci['软件著作权']='💻';
+var ch={};
+ch['竞赛获奖']=['年份','级别','等级','竞赛名称','作品名称','负责人','成员'];
+ch['科创项目']=['年份','级别','项目类别','项目名称','负责人','成员'];
+ch['社会实践']=['年份','项目名称','负责人','成员','活动'];
+ch['教师荣誉']=['年份','活动/项目','奖项'];
+ch['软件著作权']=['年份','授权号','申请号','软件名称','第一发明人','其他成员','学校登记','百度网盘'];
+
+sortedCats.forEach(function(cat){
+  var g=groups[cat];
+  var headers=ch[cat]||['年份','名称','备注'];
+  var blkId='ym-'+cat;
+  html+='<div class="block-card" id="blk-'+blkId+'" style="margin-top:12px">';
+  html+='<div class="block-header" onclick="toggleBlk(\''+blkId+'\')">';
+  html+='<div class="block-icon bicon-1">'+ci[cat]+'</div>';
+  html+='<div class="block-title">'+cat+'</div>';
+  html+='<span class="block-badge">'+g.items.length+' 条</span>';
+  html+='<span class="block-arrow" id="arr-'+blkId+'">▼</span>';
+  html+='</div><div class="block-body" id="bdy-'+blkId+'">';
+  html+='<table class="data-table"><thead><tr>';
+  headers.forEach(function(h){html+='<th>'+h+'</th>';});
+  html+='</tr></thead><tbody>';
+  g.items.forEach(function(x){
+    html+='<tr>';
+    if(cat==='竞赛获奖'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.level||'')+'</td><td>'+(x.grade||'')+'</td><td>'+(x.competition||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.members||'')+'</td>';
+    }else if(cat==='科创项目'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.level||'')+'</td><td>'+(x.grade||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.members||'')+'</td>';
+    }else if(cat==='社会实践'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.members||'')+'</td><td>'+(x.activity||'')+'</td>';
+    }else if(cat==='教师荣誉'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.activity||'')+(x.project?' / '+(x.project||''):'')+'</td><td>'+(x.award||x.note||'')+'</td>';
+    }else if(cat==='软件著作权'){
+      html+='<td>'+(x.year||'')+'</td><td>'+(x.grant_number||'')+'</td><td>'+(x.app_number||'')+'</td><td>'+(x.project||'')+'</td><td>'+(x.leader||'')+'</td><td>'+(x.other_names||'')+'</td><td>'+(x.cert_school||'')+'</td><td>'+(x.cert_baidu||'')+'</td>';
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table></div></div>';
+});
+
+if(events.length){
+  html+='<h4 style="margin:20px 0 12px;color:#636e72">📰 壹幕工作室相关新闻</h4>';
+  html+=renderNewsCards(events);
+}
+
+var ca=document.getElementById('contentArea');
+if(ca) ca.innerHTML=html;
+}
+
+function resetYmFilter(){
+  var s=document.getElementById('ymSort'); if(s) s.value='time';
+  var fl=document.getElementById('ymFilterLevel'); if(fl) fl.value='';
+  var fy=document.getElementById('ymFilterYear'); if(fy) fy.value='';
+  var fg=document.getElementById('ymFilterGrade'); if(fg) fg.value='';
+  renderYimu();
+}
+function renderMetaverse(){
+const events=ALL_DATA.metaverse.results||[];
+events.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+events.length+' 条';
+const cats=new Set(events.map(e=>e.category).filter(Boolean));
+const sel=document.getElementById('mvCat');
+if(sel&&sel.options.length===1){[...cats].sort().forEach(c=>{sel.innerHTML+='<option value="'+escAttr(c)+'">'+escHtml(c)+'</option>';});}
+let filtered=events;
+if(sel&&sel.value!=='all')filtered=events.filter(e=>e.category===sel.value);
+
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#6366f1,#a78bfa)">🌐</div><div><div class="profile-name">教育元宇宙未来课堂</div><div class="profile-meta">2022年世界人工智能大会首次发布 | 已在多地中小学试点推广<br><strong>子课程体系：</strong>花狮科学课堂 (CAVE沉浸式科学教育) | 红色记忆 (思政元宇宙课程)<br><strong>核心专利：</strong>教育元宇宙未来课堂 · 教育元宇宙交互系统 | 配套：数智大脑平台+小花狮AI数智学伴<br> <a href="https://www.ecnu.edu.cn/info/1094/69759.htm" target="_blank" rel="noopener">华东师大官网报道</a> · <a href="https://ercdee.ecnu.edu.cn/b0/97/c16571a700567/page.htm" target="_blank" rel="noopener">工程中心详情</a></div></div></div>';
+html+=renderNewsCards(filtered);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═══════ SECTION 4: BASE ═══════
+function renderBase(){
+const events=ALL_DATA.base.results||[];
+events.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+events.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#10b981,#34d399)">🏫</div><div><div class="profile-name">华东师范大学智慧教育产教基地</div><div class="profile-meta">2026年4月18日正式揭牌 | 全国首个"教育出题×高校解题×企业答题"协同平台<br>500㎡ "未来学校"样板间+超10000㎡专属办公空间 | 首批26家企业授牌<br> <a href="https://www.ecnu.edu.cn/info/1094/72008.htm" target="_blank" rel="noopener">华东师大报道</a> · <a href="http://www.deit.ecnu.edu.cn/55/9a/c26200a742810/page.htm" target="_blank" rel="noopener">教信系报道</a> · <a href="https://news.qq.com/rain/a/20260420A072MX00" target="_blank" rel="noopener">腾讯新闻</a> · <a href="https://www.sohu.com/a/1012120048_243614" target="_blank" rel="noopener">中国教育报</a></div></div></div>';
+html+=renderNewsCards(events);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═════ 渲染：我的动态 ═════
+function renderLulili(){
+const events=ALL_DATA.lulili||{};
+const list=events.results||[];
+list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+list.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#667eea,#764ba2)">👤</div><div><div class="profile-name">鲁力立 · 个人动态</div><div class="profile-meta">全网新闻链接追踪 · 时间覆盖 2011–2026<br>数据来源：主流媒体 + 学术平台 + 校内报道</div></div></div>';
+html+=renderNewsCards(list);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═════ 渲染：关联机构动态 ═════
+function renderRelated(){
+const events=ALL_DATA.related||{};
+const list=events.results||[];
+list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+list.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">🔗</div><div><div class="profile-name">关联机构动态</div><div class="profile-meta">华东师范大学 · 教育学部 · 教育信息技术学系 · 智慧教育产教基地<br>关联单位的最新动态与报道</div></div></div>';
+html+=renderNewsCards(list);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═════ 渲染：荣誉与成果 ═════
+function renderHonors(){
+const events=ALL_DATA.honors||{};
+const list=events.results||[];
+list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+document.getElementById('secStat').textContent='共 '+list.length+' 条';
+let html='<div class="profile-banner" style="margin-bottom:20px"><div class="profile-avatar" style="background:linear-gradient(135deg,#fa709a,#fee140)">🏆</div><div><div class="profile-name">荣誉与成果</div><div class="profile-meta">教学获奖 · 科研获奖 · 指导学生获奖 · 社会服务荣誉</div></div></div>';
+html+=renderNewsCards(list);
+document.getElementById('contentArea').innerHTML=html;
+}
+
+// ═══════ SHARED: NEWS CARDS ═══════
+function renderNewsCards(events){
+if(!events.length)return '<div class="empty">暂无相关新闻</div>';
+return events.map(ev=>{
+const catClass=getCatClass(ev.category);
+const sources=ev.sources||[];
+const shortTitle=ev.title||'';
+const fullTitle=ev.title_full||ev.title||'';
+const shortSummary=ev.summary?(ev.summary.length>80?ev.summary.slice(0,80)+'...':ev.summary):'';
+return '<div class="news-card" id="nc-'+escAttr(ev.id)+'"><div class="news-header" onclick="toggleNews(\''+escAttr(ev.id)+'\')"><div class="news-date">'+ev.date+'</div><div class="news-body"><div class="news-title" title="'+escAttr(fullTitle)+'">'+escHtml(shortTitle)+'</div>'+(shortSummary?'<div class="news-summary">'+escHtml(shortSummary)+'</div>':'')+'<div class="news-meta">'+(ev.category?'<span class="news-cat '+catClass+'">'+escHtml(ev.category)+'</span>':'')+(sources.length?'<span class="news-src-count" onclick="event.stopPropagation();toggleNews(\''+escAttr(ev.id)+'\')">📎 '+sources.length+' 个来源</span>':'')+'</div></div></div><div class="news-full" id="nf-'+escAttr(ev.id)+'">'+(fullTitle!==shortTitle?'<div class="news-full-title"><b>完整标题：</b>'+escHtml(fullTitle)+'</div>':'')+(ev.summary&&ev.summary.length>80?'<div class="news-full-summary"><b>完整摘要：</b>'+escHtml(ev.summary)+'</div>':'')+'</div>'+(sources.length?'<div class="news-sources" id="ns-'+escAttr(ev.id)+'">'+sources.map(s=>'<div class="news-src-item"><a href="'+escAttr(s.url)+'" target="_blank" rel="noopener" class="news-src-name">'+escHtml(s.name)+'</a><span class="news-src-url">'+escHtml(s.url)+'</span>'+(s.date?'<span class="news-src-date">'+s.date+'</span>':'')+'</div>').join('')+'</div>':'')+'</div>';
+}).join('');
+}
+
+function toggleNews(id){var el=document.getElementById('ns-'+id);if(el)el.classList.toggle('show');var fl=document.getElementById('nf-'+id);if(fl)fl.classList.toggle('show');}
+
+function getCatClass(cat){
+const m={'媒体报道':'cat-media','项目里程碑':'cat-project','学术成果':'cat-academic','荣誉奖项':'cat-honors','教学活动':'cat-teaching','基地建设':'cat-base','学术会议':'cat-conference','创业动态':'cat-startup','壹幕工作室':'cat-yimu','重大事件':'cat-base','基础设施':'cat-project','服务社会':'cat-service'};
+return m[cat]||'cat-project';}
+function escHtml(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';}
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+init();
+
+// ═══════ 导出功能 ═══════
+function getBlockData(idx){
+  const blocks=ALL_DATA.profile.results||[];
+  return blocks[idx]||{title:'',subsections:[]};
+}
+
+function exportBlockExcel(idx){
+  const block=getBlockData(idx);
+  const csv=blockToCsv(block);
+  downloadFile(block.title+'.csv', csv, 'text/csv;charset=utf-8');
+}
+
+function exportBlockWord(idx){
+  const block=getBlockData(idx);
+  const html=blockToWordHtml(block);
+  downloadFile(block.title+'.doc', html, 'application/msword;charset=utf-8');
+}
+
+function exportAllProfileExcel(){
+  const blocks=ALL_DATA.profile.results||[];
+  const all=blocks.map(b=>blockToCsv(b)).join('\n\n');
+  downloadFile('鲁力立个人全貌_全部板块.csv', all, 'text/csv;charset=utf-8');
+}
+
+function exportAllProfileWord(){
+  const blocks=ALL_DATA.profile.results||[];
+  const html='<html><head><meta charset="UTF-8"><style>body{font-family:PingFang SC,Microsoft YaHei,sans-serif;line-height:1.8}h1{color:#4834d4;border-bottom:2px solid #4834d4;padding-bottom:6px}h2{color:#636e72;margin-top:16px}p{margin:4px 0}table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:6px 10px;border:1px solid #ddd;text-align:left}</style></head><body>'+blocks.map(b=>blockToWordHtml(b)).join('<hr style="margin:20px 0">')+'</body></html>';
+  downloadFile('鲁力立个人全貌_全部板块.doc', html, 'application/msword;charset=utf-8');
+}
+
+function exportYimuExcel(){
+  const data=ALL_DATA.yimu?.results||ALL_DATA.yimu||[];
+  const records=Array.isArray(data)?data:[];
+  if(!records.length){alert('暂无壹幕工作室数据');return;}
+  const keys=Object.keys(records[0]||{});
+  const lines=['\uFEFF'+keys.join(',')];
+  records.forEach(r=>lines.push(keys.map(k=>'"'+String(r[k]||'').replace(/"/g,'""')+'"').join(',')));
+  downloadFile('壹幕工作室学生成果.csv', lines.join('\n'), 'text/csv;charset=utf-8');
+}
+
+function exportYimuWord(){
+  const data=ALL_DATA.yimu?.results||ALL_DATA.yimu||[];
+  const records=Array.isArray(data)?data:[];
+  if(!records.length){alert('暂无壹幕工作室数据');return;}
+  let html='<html><head><meta charset="UTF-8"><style>body{font-family:PingFang SC,Microsoft YaHei,sans-serif}h1{color:#00838f}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:5px 7px;border:1px solid #ccc}</style></head><body><h1>壹幕工作室学生成果</h1><table>';
+  const keys=Object.keys(records[0]||{});
+  html+='<tr>'+keys.map(k=>'<th>'+k+'</th>').join('')+'</tr>';
+  records.forEach(r=>html+='<tr>'+keys.map(k=>'<td>'+escHtml(String(r[k]||''))+'</td>').join('')+'</tr>');
+  html+='</table></body></html>';
+  downloadFile('壹幕工作室学生成果.doc', html, 'application/msword;charset=utf-8');
+}
+
+// ═════ 通用分区导出 ═════
+function escCsv(s){return '"'+String(s||'').replace(/"/g,'""')+'"';}
+
+function exportSectionExcel(sec){
+  if(sec==='profile'){exportAllProfileExcel();return;}
+  if(sec==='yimu'){exportYimuExcel();return;}
+  const data=ALL_DATA[sec]||{};
+  const list=data.results||[];
+  if(!list.length){alert('暂无数据');return;}
+  const lines=['\uFEFF标题,日期,类别,链接'];
+  list.forEach(ev=>{
+    lines.push([escCsv(ev.title_full||ev.title||''), (ev.date||''), (ev.category||''), (ev.link||'')].join(','));
+  });
+  downloadFile(sec+'.csv', lines.join('\n'), 'text/csv;charset=utf-8');
+}
+
+function exportSectionWord(sec){
+  if(sec==='profile'){exportAllProfileWord();return;}
+  if(sec==='yimu'){exportYimuWord();return;}
+  const data=ALL_DATA[sec]||{};
+  const list=data.results||[];
+  if(!list.length){alert('暂无数据');return;}
+  const colorMap={lulili:'#667eea',metaverse:'#f093fb',base:'#4facfe',related:'#43e97b',honors:'#fa709a'};
+  const c=colorMap[sec]||'#555';
+  let html='<html><head><meta charset="UTF-8"><style>body{font-family:PingFang SC,Microsoft YaHei,sans-serif}h1{color:'+c+';border-bottom:2px solid '+c+';padding-bottom:8px}table{width:100%;border-collapse:collapse;font-size:13px}th{padding:7px 10px;border:1px solid #ccc;background:#f0f0f0;text-align:left}td{padding:7px 10px;border:1px solid #ccc}</style></head><body><h1>'+escHtml(sec)+'</h1><table><tr><th>标题</th><th>日期</th><th>类别</th><th>链接</th></tr>';
+  list.forEach(ev=>{
+    html+='<tr><td>'+escHtml(ev.title_full||ev.title||'')+'</td><td>'+(ev.date||'')+'</td><td>'+(ev.category||'')+'</td><td>'+(ev.link?'<a href="'+escAttr(ev.link)+'">链接</a>':'')+'</td></tr>';
+  });
+  html+='</table></body></html>';
+  downloadFile(sec+'.doc', html, 'application/msword;charset=utf-8');
+}
+
+function blockToCsv(block){
+  const lines=['板块,'+block.title];
+  for(const sub of (block.subsections||[])){
+    lines.push('子板块,'+sub.title);
+    if(sub.type==='table'&&sub.rows){
+      lines.push(sub.columns?sub.columns.join(','):'');
+      sub.rows.forEach(r=>lines.push(r.join(',')));
+    }
+    for(const item of (sub.items||[])){
+      lines.push((item.label||'')+','+String(item.value||'').replace(/,/g,'，'));
+    }
+  }
+  return '\uFEFF'+lines.join('\n');
+}
+
+function blockToWordHtml(block){
+  let h='<h1>'+escHtml(block.title)+'</h1>';
+  for(const sub of (block.subsections||[])){
+    h+='<h2>'+escHtml(sub.title)+'</h2>';
+    if(sub.type==='table'&&sub.rows){
+      h+='<table>'+((sub.columns||[]).map(c=>'<th>'+escHtml(c)+'</th>').join(''))+'</th></tr>';
+      sub.rows.forEach(r=>h+='<tr>'+r.map(c=>'<td>'+escHtml(String(c||''))+'</td>').join('')+'</tr>');
+      h+='</table>';
+    }
+    for(const item of (sub.items||[])){
+      h+='<p><b>'+escHtml(item.label||'')+'：</b>'+escHtml(String(item.value||''))+'</p>';
+    }
+  }
+  return h;
+}
+
+function downloadFile(filename,content,mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ═══════ 全局检索 ═══════
+let searchTimer=null;
+
+function doGlobalSearch(q){
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>_doSearch(q.trim()),200);
+}
+
+function _doSearch(q){
+  const container=document.getElementById('searchResults');
+  const noResults=document.getElementById('searchNone');
+  if(!q||q.length<1){container.innerHTML='';noResults.style.display='none';return;}
+
+  const results=[],ql=q.toLowerCase();
+
+  // 搜索 profile
+  (ALL_DATA.profile.results||[]).forEach((block,bi)=>{
+    (block.subsections||[]).forEach(sub=>{
+      (sub.items||[]).forEach(item=>{
+        const val=(item.label||'')+' '+(item.value||'');if(val.toLowerCase().indexOf(ql)<0)return;
+        results.push({sec:'personal',topic:'个人全貌',match:sub.title+' > '+item.label,context:item.value,idx:bi,label:item.label});
+      });
+      if(sub.type==='table'&&sub.rows){
+        sub.rows.forEach(row=>{
+          const val=row.join(' ');if(val.toLowerCase().indexOf(ql)<0)return;
+          results.push({sec:'personal',topic:'个人全貌',match:sub.title+'（表格）',context:row.slice(0,3).join(' | '),idx:bi});
+        });
+      }
+    });
+  });
+
+  // 搜索 yimu
+  const yimuData=ALL_DATA.yimu?.results||ALL_DATA.yimu||[];
+  (Array.isArray(yimuData)?yimuData:[]).forEach(rec=>{
+    const val=Object.values(rec||{}).join(' ');if(val.toLowerCase().indexOf(ql)<0)return;
+    results.push({sec:'yimu',topic:'壹幕工作室',match:(rec.category||'')+' > '+(rec.project||rec.name||''),context:(rec.name||'')+' '+String(rec.award||'')});
+  });
+
+  // 搜索 metaverse
+  (ALL_DATA.metaverse?.results||[]).forEach(item=>{
+    const val=(item.title||'')+' '+(item.snippet||'');if(val.toLowerCase().indexOf(ql)<0)return;
+    results.push({sec:'metaverse',topic:'教育元宇宙',match:item.title||'',context:item.snippet||''});
+  });
+
+  // 搜索 base
+  (ALL_DATA.base?.results||[]).forEach(item=>{
+    const val=(item.title||'')+' '+(item.snippet||'');if(val.toLowerCase().indexOf(ql)<0)return;
+    results.push({sec:'base',topic:'产教基地',match:item.title||'',context:item.snippet||''});
+  });
+
+  if(results.length===0){container.innerHTML='';noResults.style.display='block';}
+  else{noResults.style.display='none';container.innerHTML=results.slice(0,30).map((r,i)=>{
+    return '<div class="sr-item" style="display:block" onclick="navigateToSec(\''+r.sec+'\','+(r.idx||0)+')"><div class="sr-topic">['+r.topic+']</div><div class="sr-match">'+htmlHighlight(r.match,q)+'</div><div class="sr-info">'+escHtml(String(r.context||'').substring(0,120))+'</div></div>';
+  }).join('');}
+}
+
+function navigateToSec(sec,idx){
+  switchSection(sec);
+  document.getElementById('globalSearch').value='';
+  document.getElementById('searchResults').innerHTML='';
+  document.getElementById('searchNone').style.display='none';
+  setTimeout(()=>{
+    if(sec==='personal'){const el=document.getElementById('blk-'+idx);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}
+  },300);
+}
+
+function htmlHighlight(text,q){
+  const escaped=escHtml(String(text||''));
+  if(!q)return escaped;
+  try{
+    const escapedQ=q.replace(/[.*+?^${}()|[\]\/]/g,'\\$&');
+    const re=new RegExp('('+escapedQ+')','gi');
+    return escaped.replace(re,'<mark>$1</mark>');
+  }catch(e){
+    return escaped;
+  }
+}
+// ============ 刷新相关 ============
+function triggerRefresh(){
+  // 检测是否在 Flask 服务器环境
+  var isServer=/^https?:\/\//.test(location.protocol)||location.hostname!=='localhost'&&location.hostname!=='127.0.0.1';
+  // 尝试调用刷新 API（如果服务器支持）
+  fetch('/api/refresh',{method:'POST',cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
+    if(d.status==='started'){
+      showRefreshToast('正在搜索全网最新动态，请稍候…');
+      pollRefreshStatus();
+    }else{
+      openRefreshModal();
+    }
+  }).catch(function(){
+    openRefreshModal();
+  });
+}
+
+function openRefreshModal(){document.getElementById('refreshModal').style.display='flex';}
+function closeRefreshModal(){document.getElementById('refreshModal').style.display='none';}
+
+function showRefreshToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2d3436;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:10000;box-shadow:0 4px 20px rgba(0,0,0,.2)';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove()},4000);
+}
+
+function pollRefreshStatus(){
+  fetch('/api/refresh/status',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
+    if(d.status==='done'){
+      showRefreshToast('✅ 数据已更新！正在刷新页面…');
+      setTimeout(function(){location.reload()},1500);
+    }else if(d.status==='running'){
+      setTimeout(pollRefreshStatus,3000);
+    }else{
+      openRefreshModal();
+    }
+  }).catch(function(){openRefreshModal()});
+}
+
+function loadUpdateTime(){
+  var el=document.getElementById('updateTime');
+  try{
+    // 优先使用 navigation.timing (现代 API)
+    var timing=performance.timing;
+    var navStart=timing&&timing.navigationStart?timing.navigationStart:Date.now();
+    var d=new Date(navStart);
+    el.textContent='数据版本：'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }catch(e){
+    el.textContent='数据版本：2026-06-07';
+  }
+}
+
+loadUpdateTime();
+
+// ═════ 智能对话功能 ═════
+let chatHistory=[];
+let chatLoading=false;
+
+function chatShowSettings(){
+  document.getElementById('chatSettingsOverlay').style.display='flex';
+  const input=document.getElementById('chatApiKeyInput');
+  const saved=localStorage.getItem('deepseek_api_key')||'';
+  input.value=saved?'sk-****'+saved.slice(-4):'';
+  input.dataset.saved=saved;
+}
+
+function chatSaveKey(){
+  const input=document.getElementById('chatApiKeyInput');
+  let key=input.value.trim();
+  if(key.indexOf('****')!=-1){key=input.dataset.saved||'';}
+  if(!key||!key.startsWith('sk-')){alert('请输入有效的 DeepSeek API Key（以 sk- 开头）');return;}
+  localStorage.setItem('deepseek_api_key',key);
+  document.getElementById('chatSettingsOverlay').style.display='none';
+  alert('✅ API Key 已保存！您可以开始对话了。');
+}
+
+function chatToggle(){
+  const panel=document.getElementById('chatPanel');
+  const fab=document.getElementById('chatFab');
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open')){document.getElementById('chatInput').focus();}
+}
+
+function chatAddMsg(role,content){
+  const wrap=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='chat-msg '+(role==='user'?'user':'ai');
+  div.textContent=content;
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+  return div;
+}
+
+function chatAddMsgHtml(role,html){
+  const wrap=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='chat-msg '+(role==='user'?'user':'ai');
+  div.innerHTML=html;
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+  return div;
+}
+
+// 判断当前环境
+function chatGetApiConfig(){
+  var port=location.port;
+  var host=location.hostname;
+  // Flask 模式（端口 8888）：通过 Flask 代理调用
+  if(host==='localhost'||host==='127.0.0.1'){
+    if(port==='8888'){
+      return {url:'/api/chat', mode:'flask', needKey:false};
+    }
+    // 迷你服务器模式（端口 8000）：通过同源代理调用
+    if(port==='8000'){
+      return {url:'/api/chat', mode:'standalone-server', needKey:false};
+    }
+  }
+  // file:// 协议或其他：无法跨域
+  return {url:'', mode:'file', needKey:false, error:'CORS'};
+}
+
+function chatSend(){
+  if(chatLoading)return;
+  const input=document.getElementById('chatInput');
+  const q=input.value.trim();
+  if(!q)return;
+  input.value='';
+
+  const apiCfg=chatGetApiConfig();
+
+  // 独立版需要 Key
+  if(apiCfg.needKey){
+    const apiKey=localStorage.getItem('deepseek_api_key')||'';
+    if(!apiKey||!apiKey.startsWith('sk-')){
+      chatShowSettings();
+      return;
+    }
+  }
+
+  // 显示用户消息
+  chatAddMsg('user',q);
+
+  // 显示加载中
+  const loadingDiv=chatAddMsgHtml('ai','<span class="loading-dots">思考中…</span>');
+
+  chatLoading=true;
+  document.getElementById('chatSendBtn').disabled=true;
+
+  // 构造 context（将 ALL_DATA 序列化为可读文本）
+  let context='';
+  try{
+    context=JSON.stringify(ALL_DATA,null,2);
+    if(context.length>12000){context=context.slice(0,12000)+'\n...(数据过长已截断）';}
+  }catch(e){context='数据解析失败：'+String(e);}
+
+  const messages=[
+    {role:'system',content:'你是鲁力立学术动态监控系统的AI助手。请根据提供的JSON数据回答用户问题。数据包含鲁力立的个人基本信息、教育背景、职务身份、壹幕工作室成果、教育元宇宙未来课堂项目、智慧教育产教基地、个人动态新闻、关联机构动态、荣誉成果等内容。请用简洁专业的语言回答，引用数据中的具体内容。如果数据中没有相关信息，请如实告知。'},
+    {role:'system',content:'以下是鲁力立的全部数据（JSON格式）：\n'+context},
+    ...chatHistory.slice(-6),
+    {role:'user',content:q}
+  ];
+
+  var fetchUrl=apiCfg.url;
+  var fetchOpts={
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'deepseek-chat',messages:messages,temperature:0.3})
+  };
+
+  // 独立版需要添加 Authorization
+  if(apiCfg.needKey){
+    fetchOpts.headers['Authorization']='Bearer '+localStorage.getItem('deepseek_api_key');
+  }
+
+  fetch(fetchUrl,fetchOpts)
+  .then(function(r){
+    if(!r.ok){
+      // 尝试读取错误详情
+      return r.json().then(function(errBody){
+        var msg='API 请求失败（状态码 '+r.status+'）';
+        if(errBody&&errBody.error){
+          var de=errBody.error;
+          if(de.message) msg=de.message;
+          if(de.code&&de.code==='invalid_request_error'){
+            if(de.message.indexOf('Insufficient Balance')>=0) msg='DeepSeek 账户余额不足，请前往 platform.deepseek.com 充值';
+            else if(de.message.indexOf('Authentication')>=0) msg='API Key 无效，请重新设置';
+          }
+        }
+        throw new Error(msg);
+      });
+    }
+    return r.json();
+  })
+  .then(function(d){
+    var answer=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'（未获取到回答）';
+    loadingDiv.textContent=answer;
+    chatHistory.push({role:'user',content:q});
+    chatHistory.push({role:'assistant',content:answer});
+    if(chatHistory.length>20)chatHistory=chatHistory.slice(-20);
+  })
+  .catch(function(e){
+    var errMsg=String(e.message||e);
+    var tip='';
+    var cfg=chatGetApiConfig();
+    if(cfg.mode==='file'){
+      tip='<br><span style="font-size:12px;color:#ef4444">⚠️ 当前以本地文件（file://）方式打开，浏览器安全限制阻止了网络请求。<br><br>✅ 解决方案：双击 <b>start.command</b>（macOS）或 <b>start.bat</b>（Windows）启动本地服务器，或访问 <b>http://localhost:8888</b>（Flask 模式）。</span>';
+    }else if(errMsg.indexOf('余额不足')>=0||errMsg.indexOf('Insufficient Balance')>=0){
+      tip='<br><span style="font-size:11px;color:#f39c12">DeepSeek 账户余额不足，请前往 <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:#f39c12">platform.deepseek.com</a> 充值（最低 10 元）。</span>';
+    }else if(errMsg.indexOf('Invalid')>=0||errMsg.indexOf('Authentication')>=0){
+      tip='<br><span style="font-size:11px;color:#b2bec3">API Key 无效，请点击 ⚙️ 重新设置。</span>';
+    }else if(errMsg.indexOf('Failed to fetch')>=0||errMsg.indexOf('NetworkError')>=0){
+      tip='<br><span style="font-size:11px;color:#f39c12">网络连接失败，请检查网络或确认服务器已启动。</span>';
+    }else{
+      tip='<br><span style="font-size:11px;color:#b2bec3">请检查网络连接，或刷新页面重试。</span>';
+    }
+    loadingDiv.innerHTML='<span style="color:#ef4444">⚠️ '+escHtml(errMsg)+'</span>'+tip;
+  })
+  .finally(function(){
+    chatLoading=false;
+    document.getElementById('chatSendBtn').disabled=false;
+  });
+}
+
+function chatHandleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chatSend();}
+}
+
+function chatClearHistory(){
+  if(!confirm('确定要清空对话历史吗？'))return;
+  chatHistory=[];
+  var mode=chatGetApiConfig().mode;
+  var tip='';
+  if(mode==='flask'){
+    tip='（Flask 代理模式，无需设置 Key）';
+  }else if(mode==='standalone-server'){
+    tip='（本地服务器代理模式，无需设置 Key）';
+  }else{
+    tip='请先点击 ⚙️ 设置 DeepSeek API Key，然后输入您的问题。';
+  }
+  document.getElementById('chatMessages').innerHTML='<div class="chat-msg ai">👋 您好！我是鲁力立学术动态监控系统的 AI 助手。<br><br>我可以帮您：<br>• 概述项目情况（如"概述教育元宇宙未来课堂项目"）<br>• 查询荣誉成果（如"鲁力立获得了哪些荣誉？"）<br>• 统计数据分析（如"壹幕工作室有多少项获奖？"）<br><br>'+tip+'</div>';
+}
+</script>
+
+<!-- ═════ 智能对话：悬浮按钮 ═════ -->
+<button class="chat-fab" id="chatFab" onclick="chatToggle()" title="智能对话">
+  💬
+  <span class="badge" id="chatBadge" style="display:none">!</span>
+</button>
+
+<!-- ═════ 智能对话：聊天面板 ═════ -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-hd">
+    <h3>🤖 智能对话助手</h3>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="chatClearHistory()" title="清空对话" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">🗑️</button>
+      <button onclick="chatShowSettings()" title="设置 API Key" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">⚙️</button>
+      <button class="close-btn" onclick="chatToggle()">✕</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg ai">👋 您好！我是鲁力立学术动态监控系统的 AI 助手。<br><br>我可以帮您：<br>• 概述项目情况（如"概述教育元宇宙未来课堂项目"）<br>• 查询荣誉成果（如"鲁力立获得了哪些荣誉？"）<br>• 统计数据分析（如"壹幕工作室有多少项获奖？"）<br><br>请先点击 ⚙️ 设置 DeepSeek API Key，然后输入您的问题。</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="输入您的问题…" onkeydown="chatHandleKey(event)">
+    <button id="chatSendBtn" onclick="chatSend()">发送</button>
+  </div>
+</div>
+
+<!-- ═════ 智能对话：API Key 设置弹窗 ═════ -->
+<div class="chat-settings-overlay" id="chatSettingsOverlay" style="display:none">
+  <div class="chat-settings-box">
+    <h3>⚙️ 设置 DeepSeek API Key</h3>
+    <p>请输入您的 <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:#4834d4">DeepSeek API Key</a>，用于驱动智能对话功能。<br>Key 将保存在浏览器本地（localStorage），不会上传至任何服务器。<br><br><strong>获取方式：</strong>登录 DeepSeek 开放平台 → API Keys → 创建新 Key</p>
+    <input type="password" id="chatApiKeyInput" placeholder="sk-..." autocomplete="off">
+    <div class="chat-status" id="chatStatus"></div>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="document.getElementById('chatSettingsOverlay').style.display='none'">取消</button>
+      <button class="btn-save" onclick="chatSaveKey()">保存</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
