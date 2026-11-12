@@ -6,3 +6,6 @@ python-docx>=1.1       # Word 导出
 # 在线检索（可选：不装也能用，只是无法触发实时搜索）
 duckduckgo-search>=6.0
 requests>=2.31
+
+# 仅当构建带访问密码的独立版时需要（AES-GCM 加密）
+pycryptodome>=3.20
