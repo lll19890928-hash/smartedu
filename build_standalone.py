@@ -67,6 +67,11 @@ post_script_html = "".join(lines[script_end+1:body_end])
 # ── 3. 生成嵌入数据 JSON 块 ──────────────────────────────
 data_json = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
+# 独立版可能被托管在子路径下（如 GitHub Pages 的 /smartedu/），
+# 绝对路径 /static/... 会指到站点根目录导致 404，统一改成相对路径
+data_json = data_json.replace('"/static/', '"static/')
+data_json = re.sub(r'([("\'])/static/', r'\1static/', data_json)
+
 # ── 4. 构造干净的 init 函数 ──────────────────────────────
 clean_init = """let ALL_DATA={},currentSection='personal';
 
