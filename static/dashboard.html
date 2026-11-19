@@ -320,7 +320,7 @@ var[pr,lr,mr,br,rr,hr]=await Promise.all([
 ALL_DATA.profile=pr; ALL_DATA.lulili=lr; ALL_DATA.metaverse=mr;
 ALL_DATA.base=br; ALL_DATA.related=rr; ALL_DATA.honors=hr;
 
-try{var yr=await fetch('/static/yimu.json?_v='+v,{cache:'no-store'});ALL_DATA.yimu=await yr.json();}catch(e){ALL_DATA.yimu={results:[],stats:{}};}
+try{var SITE_BASE=(function(){var pp=location.pathname;if(pp.indexOf('/static/')>-1)return pp.slice(0,pp.indexOf('/static/'));return pp.replace(/dashboard\.html$/,'').replace(/\/$/,'');})();var yr=await fetch(SITE_BASE+'/static/yimu.json?_v='+v,{cache:'no-store'});ALL_DATA.yimu=await yr.json();}catch(e){ALL_DATA.yimu={results:[],stats:{}};}
 
 switchSection('personal');
 }

@@ -84,6 +84,13 @@ body{background:#0f0f23;color:#dfe6e9;font-family:'PingFang SC','Microsoft YaHei
 <div class="footer">鲁力立学术动态监控系统 · 论文原文库</div>
 </div>
 <script>
+// 站点可能部署在子路径下（如 GitHub Pages /smartedu/），动态计算站点根前缀
+var BASE=(function(){
+  var p=location.pathname;
+  if(p.indexOf('/static/')>-1)return p.slice(0,p.indexOf('/static/'));
+  if(p.slice(-7)==='/papers')return p.slice(0,-7);
+  return p.replace(/index\.html$/,'').replace(/\/$/,'');
+})();
 var PAPERS=[
 {num:"[1]",year:"2026",level:"SSCI",journal:"Acta Psychologica",role:"共同作者",
 title:"WANG Yilei, LU Lili, MA Yuanqian, et al. Virtual reality in physiological education: Influence of learning modality and learner characteristics on learning outcomes[J]. Acta Psychologica, 2026, 267.",
@@ -150,7 +157,7 @@ return true;
 });
 var html=filtered.map(function(p){
 var actions=p.pdf
-?'<a href="'+p.pdf+'" target="_blank" class="btn btn-view">📄 在线查看</a><a href="'+p.pdf+'" download class="btn btn-download">⬇ 下载PDF</a>'
+?'<a href="'+BASE+p.pdf+'" target="_blank" class="btn btn-view">📄 在线查看</a><a href="'+BASE+p.pdf+'" download class="btn btn-download">⬇ 下载PDF</a>'
 :'<span class="no-pdf">暂无原文</span>';
 return '<div class="paper-card">'
 +'<div class="paper-num">'+p.num+'</div>'

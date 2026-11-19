@@ -107,7 +107,7 @@
       "sources": [
         {
           "name": "获奖证书（用户提供）",
-          "url": "/static/certificates/caet2026_paper1127_三等奖证书.jpg",
+          "url": "static/certificates/caet2026_paper1127_三等奖证书.jpg",
           "date": "2026-05-06"
         }
       ],
